@@ -13,16 +13,9 @@ export default class App extends React.Component {
 
     return (
       <View style={{ flex: 1, paddingTop: 20 }}>
-        <Text>Go through all the react tutorials</Text>
-        <Text>Build a UI for searching for a user, a text input and a button</Text>
-        <Text>When button clicked, do rest call (fetch) to return users that match</Text>
-        <Text>Get user to pick one, then do another rest call and display the stats</Text>
+        <text>Hello there!!</text>
       </View>
     );
-
-
-
-
 
     const styles = StyleSheet.create({
       container: {
