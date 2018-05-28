@@ -1,15 +1,12 @@
 import React, { Component } from 'react';
-import { AppRegistry, Text, TextInput, View, Alert, Button, Image } from 'react-native';
+import { AppRegistry, Text, TextInput, View, Alert, Button, Image, ReactDOM } from 'react-native';
 
 /* To Do:
-* Get it working with a button click!
-* Display that info
+* Work out how to display the data!
 */
 
 export default class GetUsername extends Component {
   async SearchForUser(userName) {
-
-    //doing console.log, puts it into the terminal, you have to restart the project with npm start for it display in the terminal
     if (userName != null || userName != undefined || userName != "") {
 
       console.log("username: " + userName);
@@ -24,32 +21,60 @@ export default class GetUsername extends Component {
         let response = await fetch("https://api.rocketleaguestats.com/v1/search/players?display_name=" + userName, obj)
         let resJSON = await response.json();
         let length = resJSON.totalResults;
+        if (length > 0) {
+          for (let i = 0; i < length; i++) {
+            let avatar = resJSON.data[i].avatar;
+            let platform = resJSON.data[i].platform.name;
+            let wins = resJSON.data[i].stats.wins;
+            let goals = resJSON.data[i].stats.goals;
+            let mvps = resJSON.data[i].stats.mvps;
+            let saves = resJSON.data[i].stats.saves;
+            let shots = resJSON.data[i].stats.shots;
+            let assists = resJSON.data[i].stats.assists;
+            let signatureUrl = resJSON.data[i].signatureUrl; //this has everything on in but in a picture, use the above for graphs?
 
-        //if theres more than one, print them all out
+            console.log(i + ") Player Data: Avatar: " + avatar + "  Wins: " + wins + " Goals: " + goals + " MVP's: " + mvps + " Saves: " + saves + " Shots: " + shots + " Assists: " + assists);
 
-        let avatar = resJSON.data[0].avatar;
-        let platform = resJSON.data[0].platform.name;
-        let wins = resJSON.data[0].stats.wins;
-        let goals = resJSON.data[0].stats.goals;
-        let mvps = resJSON.data[0].stats.mvps;
-        let saves = resJSON.data[0].stats.saves;
-        let shots = resJSON.data[0].stats.shots;
-        let assists = resJSON.data[0].stats.assists;
-        let signatureUrl = resJSON.data[0].signatureUrl; //this has everything on in but in a picture, use the above for graphs?
-        console.log("Player Data: Avatar: " + avatar + "  Wins: " + wins + " Goals: " + goals + " MVP's: " + mvps + " Saves: " + saves + " Shots: " + shots + " Assists: " + assists);
-        //call a function to render stuff out or do it here!
-        return (
-          <View style={{ alignItems: 'center', padding: 10, }}>
-            <Image style={{ width: 50, height: 50 }} source={{ uri: avatar }} />
-            <Text>Wins: {wins} </Text>
-            <Text>Goals: {goals} </Text>
-            <Text>Mvp's: {mvps} </Text>
-            <Text>Saves: {saves} </Text>
-            <Text>Shots: {shots} </Text>
-            <Text>Assists: {assists} </Text>
-            <Image style={{ width: 50, height: 50 }} source={{ uri: signatureUrl }} />
-          </View>
-        );
+            return (
+              <View style={{ alignItems: 'center', padding: 10, }}>
+                <Image style={{ width: 50, height: 50 }} source={{ uri: avatar }} />
+                <Text>Wins: {wins} </Text>
+                <Text>Goals: {goals} </Text>
+                <Text>Mvp's: {mvps} </Text>
+                <Text>Saves: {saves} </Text>
+                <Text>Shots: {shots} </Text>
+                <Text>Assists: {assists} </Text>
+                <Image style={{ width: 50, height: 50 }} source={{ uri: signatureUrl }} />
+              </View>
+            );
+          }
+        }
+        else {
+          let avatar = resJSON.data[0].avatar;
+          let platform = resJSON.data[0].platform.name;
+          let wins = resJSON.data[0].stats.wins;
+          let goals = resJSON.data[0].stats.goals;
+          let mvps = resJSON.data[0].stats.mvps;
+          let saves = resJSON.data[0].stats.saves;
+          let shots = resJSON.data[0].stats.shots;
+          let assists = resJSON.data[0].stats.assists;
+          let signatureUrl = resJSON.data[0].signatureUrl; //this has everything on in but in a picture, use the above for graphs?
+          console.log("Player Data: Avatar: " + avatar + "  Wins: " + wins + " Goals: " + goals + " MVP's: " + mvps + " Saves: " + saves + " Shots: " + shots + " Assists: " + assists);
+          //call a function to render stuff out or do it here!
+
+          return (
+            <View style={{ alignItems: 'center', padding: 10, }}>
+              <Image style={{ width: 50, height: 50 }} source={{ uri: avatar }} />
+              <Text>Wins: {wins} </Text>
+              <Text>Goals: {goals} </Text>
+              <Text>Mvp's: {mvps} </Text>
+              <Text>Saves: {saves} </Text>
+              <Text>Shots: {shots} </Text>
+              <Text>Assists: {assists} </Text>
+              <Image style={{ width: 50, height: 50 }} source={{ uri: signatureUrl }} />
+            </View>
+          );
+        }
 
       }
       catch (err) {
@@ -65,7 +90,7 @@ export default class GetUsername extends Component {
 
   constructor(props) {
     super(props);
-    this.state = { text: '' };
+    this.state = { text: '', display: false };
     this.SearchForUser = this.SearchForUser.bind(this);
   }
 
