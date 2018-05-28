@@ -33,80 +33,52 @@ export default class GetUsername extends Component {
             let assists = resJSON.data[i].stats.assists;
             let signatureUrl = resJSON.data[i].signatureUrl; //this has everything on in but in a picture, use the above for graphs?
 
-            console.log(i + ") Player Data: Avatar: " + avatar + "  Wins: " + wins + " Goals: " + goals + " MVP's: " + mvps + " Saves: " + saves + " Shots: " + shots + " Assists: " + assists);
-
-            return (
-              <View style={{ alignItems: 'center', padding: 10, }}>
-                <Image style={{ width: 50, height: 50 }} source={{ uri: avatar }} />
-                <Text>Wins: {wins} </Text>
-                <Text>Goals: {goals} </Text>
-                <Text>Mvp's: {mvps} </Text>
-                <Text>Saves: {saves} </Text>
-                <Text>Shots: {shots} </Text>
-                <Text>Assists: {assists} </Text>
-                <Image style={{ width: 50, height: 50 }} source={{ uri: signatureUrl }} />
-              </View>
-            );
+            //this re renders the component!
+            this.setState({ display: true, length: length++, username: userName, avatar: avatar, platform: platform, wins: wins, goals: goals, mvps: mvps, saves: saves, shots: shots, assists: assists, signatureUrl: signatureUrl });
           }
         }
-        else {
-          let avatar = resJSON.data[0].avatar;
-          let platform = resJSON.data[0].platform.name;
-          let wins = resJSON.data[0].stats.wins;
-          let goals = resJSON.data[0].stats.goals;
-          let mvps = resJSON.data[0].stats.mvps;
-          let saves = resJSON.data[0].stats.saves;
-          let shots = resJSON.data[0].stats.shots;
-          let assists = resJSON.data[0].stats.assists;
-          let signatureUrl = resJSON.data[0].signatureUrl; //this has everything on in but in a picture, use the above for graphs?
-          console.log("Player Data: Avatar: " + avatar + "  Wins: " + wins + " Goals: " + goals + " MVP's: " + mvps + " Saves: " + saves + " Shots: " + shots + " Assists: " + assists);
-          //call a function to render stuff out or do it here!
-
-          return (
-            <View style={{ alignItems: 'center', padding: 10, }}>
-              <Image style={{ width: 50, height: 50 }} source={{ uri: avatar }} />
-              <Text>Wins: {wins} </Text>
-              <Text>Goals: {goals} </Text>
-              <Text>Mvp's: {mvps} </Text>
-              <Text>Saves: {saves} </Text>
-              <Text>Shots: {shots} </Text>
-              <Text>Assists: {assists} </Text>
-              <Image style={{ width: 50, height: 50 }} source={{ uri: signatureUrl }} />
-            </View>
-          );
-        }
-
       }
       catch (err) {
         console.log("ERROR!");
         console.log(err);
       }
-
     }
-
-
   }
-
-
   constructor(props) {
     super(props);
-    this.state = { text: '', display: false };
+    this.state = { text: '', display: false, length: '', username: '', avatar: '', platform: '', wins: '', goals: '', mvps: '', saves: '', shots: '', assists: '', signatureUrl: '' };
     this.SearchForUser = this.SearchForUser.bind(this);
   }
 
   render() {
-    return (
-      <View style={{ alignItems: 'center', padding: 10, }}>
-        <Text>Welcome to the Rocket league Stats app </Text>
-        <TextInput style={{ height: 40, width: 200 }} placeholder="Enter username here!" onChangeText={(text) => this.setState({ text })} />
-        <Button title="Get Stats" color="#ADD8E6" onPress={() => this.SearchForUser(this.state.text)} />
-        <Text> This is the text that has been entered: {this.state.text} </Text>
-      </View>
 
-    );
-
+    if (this.state.display === false) {
+      return (
+        <View style={{ alignItems: 'center', padding: 10, }}>
+          <Text>Welcome to the Rocket league Stats app </Text>
+          <TextInput style={{ height: 40, width: 200 }} placeholder="Enter username here!" onChangeText={(text) => this.setState({ text })} />
+          <Button title="Get Stats" color="#ADD8E6" onPress={() => this.SearchForUser(this.state.text)} />
+          <Text> This is the text that has been entered: {this.state.text} </Text>
+        </View>
+      );
+    }
+    else {
+      //try a list or listview, or flat list to make this look a lot better!
+      return (
+        <View style={{ alignItems: 'center', padding: 10, }}>
+          <Text>Results for {this.state.username}: </Text>
+          <Image source={{ uri: this.state.avatar }} style={{ width: 50, height: 50 }} />
+          <Text>Wins: {this.state.wins} </Text>
+          <Text> Goals: {this.state.goals} </Text>
+          <Text>MVP's: {this.state.mvps}</Text>
+          <Text>Saves: {this.state.saves}</Text>
+          <Text>Shots: {this.state.shots}</Text>
+          <Text>Assists: {this.state.assists}</Text>
+          <Image source={{ uri: this.state.signatureUrl }} style={{ width: 500, height: 100 }} />
+        </View >
+      );
+    }
   }
-
 }
 
 
