@@ -2,7 +2,12 @@ import React, { Component } from 'react';
 import { AppRegistry, Text, TextInput, View, Alert, Button, Image, ReactDOM } from 'react-native';
 
 /* To Do:
-* Work out how to display the data!
+*Make it look pretty
+*Compare with other users
+*Handle multiple results returned from rest better
+*Use the data to create graphs?
+*Anything else cool :P
+*Try redux? should help with state(apparently)
 */
 
 export default class GetUsername extends Component {
@@ -41,6 +46,7 @@ export default class GetUsername extends Component {
       catch (err) {
         console.log("ERROR!");
         console.log(err);
+        //display something to tel the user there isnt any users found?
       }
     }
   }
@@ -51,14 +57,12 @@ export default class GetUsername extends Component {
   }
 
   render() {
-
     if (this.state.display === false) {
       return (
         <View style={{ alignItems: 'center', padding: 10, }}>
           <Text>Welcome to the Rocket league Stats app </Text>
           <TextInput style={{ height: 40, width: 200 }} placeholder="Enter username here!" onChangeText={(text) => this.setState({ text })} />
           <Button title="Get Stats" color="#ADD8E6" onPress={() => this.SearchForUser(this.state.text)} />
-          <Text> This is the text that has been entered: {this.state.text} </Text>
         </View>
       );
     }
@@ -74,7 +78,8 @@ export default class GetUsername extends Component {
           <Text>Saves: {this.state.saves}</Text>
           <Text>Shots: {this.state.shots}</Text>
           <Text>Assists: {this.state.assists}</Text>
-          <Image source={{ uri: this.state.signatureUrl }} style={{ width: 500, height: 100 }} />
+          <Image source={{ uri: this.state.signatureUrl }} style={{ width: 400, height: 100 }} />
+          <Button title="Search Again" color="#00B200" onPress={() => Alert.alert("This doesnt do anything yet lel")} />
         </View >
       );
     }
