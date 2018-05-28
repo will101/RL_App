@@ -62,7 +62,7 @@ export default class GetUsername extends Component {
         <View style={{ alignItems: 'center', padding: 10, }}>
           <Text>Welcome to the Rocket league Stats app </Text>
           <TextInput style={{ height: 40, width: 200 }} placeholder="Enter username here!" onChangeText={(text) => this.setState({ text })} />
-          <Button title="Get Stats" color="#ADD8E6" onPress={() => this.SearchForUser(this.state.text)} />
+          <Button title="Get Stats" color="#ADD8E6" onPress={() => this.SearchForUser(this.state.text)} } />
         </View>
       );
     }
