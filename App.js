@@ -5,6 +5,7 @@ import { List, ListItem, Avatar } from "react-native-elements";
 /* To Do:
 *Make it look pretty
 *Compare with other users
+*Sort out why it doesnt find james dawson!
 *Use the data to create graphs?
 *Try karma for testing
 *Tidy up code
@@ -137,7 +138,7 @@ export default class GetUsername extends Component {
             <Avatar
               large
               rounded
-              title=""
+              title="WJ"
               activeOpacity={0.7}
             />
             <Text>Wins: {this.state.wins} </Text>
@@ -157,7 +158,7 @@ export default class GetUsername extends Component {
             <Avatar
               large
               rounded
-              source={{ uri: avatarHere }}
+              source={{ uri: this.state.avatar }}
               activeOpacity={0.7}
             />
             <Text>Wins: {this.state.wins} </Text>
