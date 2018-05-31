@@ -1,13 +1,13 @@
 import React, { Component } from 'react';
 import { AppRegistry, Text, TextInput, View, Alert, Button, Image, ReactDOM, SectionList, FlatList } from 'react-native';
-import { List, ListItem } from "react-native-elements";
+import { List, ListItem, Avatar } from "react-native-elements";
 
 /* To Do:
-*Handle multiple results returned from rest better - add button on end sp when users click iyt, we change the state again and only show that user
 *Make it look pretty
 *Compare with other users
 *Use the data to create graphs?
 *Try karma for testing
+*Tidy up code
 */
 
 class userObj {
@@ -128,21 +128,50 @@ export default class GetUsername extends Component {
       );
     }
     if (this.state.display === true) {
-      //try a list or listview, or flat list to make this look a lot better!
-      return (
-        <View style={{ alignItems: 'center', padding: 10, }}>
-          <Text>Results for {this.state.username}: </Text>
-          <Image source={{ uri: this.state.avatar }} style={{ width: 50, height: 50 }} />
-          <Text>Wins: {this.state.wins} </Text>
-          <Text> Goals: {this.state.goals} </Text>
-          <Text>MVP's: {this.state.mvps}</Text>
-          <Text>Saves: {this.state.saves}</Text>
-          <Text>Shots: {this.state.shots}</Text>
-          <Text>Assists: {this.state.assists}</Text>
-          <Image source={{ uri: this.state.signatureUrl }} style={{ width: 400, height: 100 }} />
-          <Button title="Search Again" color="#00B200" onPress={() => this.setState({ display: false })} />
-        </View >
-      );
+      //use the react native elements to make this bit looks better!
+      let initials = this.state.username; //get initials from this string
+
+      if (this.state.avatar == "") {
+        return (
+          <View style={{ alignItems: 'center', padding: 10, }}>
+            <Avatar
+              large
+              rounded
+              title=""
+              activeOpacity={0.7}
+            />
+            <Text>Wins: {this.state.wins} </Text>
+            <Text> Goals: {this.state.goals} </Text>
+            <Text>MVP's: {this.state.mvps}</Text>
+            <Text>Saves: {this.state.saves}</Text>
+            <Text>Shots: {this.state.shots}</Text>
+            <Text>Assists: {this.state.assists}</Text>
+            <Image source={{ uri: this.state.signatureUrl }} style={{ width: 400, height: 100 }} />
+            <Button title="Search Again" color="#00B200" onPress={() => this.setState({ display: false })} />
+          </View >
+        );
+      }
+      else {
+        return (
+          <View style={{ alignItems: 'center', padding: 10, }}>
+            <Avatar
+              large
+              rounded
+              source={{ uri: avatarHere }}
+              activeOpacity={0.7}
+            />
+            <Text>Wins: {this.state.wins} </Text>
+            <Text> Goals: {this.state.goals} </Text>
+            <Text>MVP's: {this.state.mvps}</Text>
+            <Text>Saves: {this.state.saves}</Text>
+            <Text>Shots: {this.state.shots}</Text>
+            <Text>Assists: {this.state.assists}</Text>
+            <Image source={{ uri: this.state.signatureUrl }} style={{ width: 400, height: 100 }} />
+            <Button title="Search Again" color="#00B200" onPress={() => this.setState({ display: false })} />
+          </View >
+        );
+      }
+
     }
 
     if (this.state.display === "Not found") {
@@ -164,7 +193,7 @@ export default class GetUsername extends Component {
               <ListItem
                 roundAvatar
                 title={`${item.username}`}
-                subtitle={item.profile}
+                subtitle={`Platform: ${item.platform}, Goals: ${item.goals}`}
                 avatar={{ uri: item.avatar }}
                 containerStyle={{ borderBottomWidth: 0 }}
                 onPress={() => this.setState({ display: true, avatar: item.avatar, username: item.username, wins: item.wins, goals: item.goals, mvps: item.mvps, saves: item.saves, assists: item.assists, signatureUrl: item.signatureUrl })}
