@@ -1,23 +1,30 @@
 import React, { Component } from 'react';
 import { AppRegistry, Text, TextInput, View, Alert, Button, Image, ReactDOM, SectionList, FlatList } from 'react-native';
+import { List, ListItem } from "react-native-elements";
 
 /* To Do:
+*Handle multiple results returned from rest better - add button on end sp when users click iyt, we change the state again and only show that user
 *Make it look pretty
 *Compare with other users
-*Handle multiple results returned from rest better
 *Use the data to create graphs?
-*Anything else cool :P
-*Try redux? should help with state(apparently)
+*Try karma for testing
 */
 
 class userObj {
   username;
   avatar;
-  constructor(username, avatar, platform, profile) {
+  constructor(username, avatar, platform, profile, id, wins, goals, mvps, saves, assists, signatureUrl) {
     this.username = username;
     this.avatar = avatar;
     this.platform = platform;
     this.profile = profile;
+    this.id = id;
+    this.wins = wins;
+    this.goals = goals;
+    this.mvps = mvps;
+    this.saves = saves;
+    this.assists = assists;
+    this.signatureUrl = signatureUrl;
   }
 }
 
@@ -81,8 +88,15 @@ export default class GetUsername extends Component {
             catch (e) {
               platform = "";
             }
-
-            let user = new userObj(userName, avatar, platform, profileUrl);
+            let id = resJSON.data[i].uniqueId;
+            let wins = resJSON.data[i].stats.wins;
+            let goals = resJSON.data[i].stats.goals;
+            let mvps = resJSON.data[i].stats.mvps;
+            let saves = resJSON.data[i].stats.saves;
+            let shots = resJSON.data[i].stats.shots;
+            let assists = resJSON.data[i].stats.assists;
+            let signatureUrl = resJSON.data[i].signatureUrl;
+            let user = new userObj(userName, avatar, platform, profileUrl, id, wins, goals, mvps, saves, assists, signatureUrl);
             allUsers.push(user);
           }
           this.setState({ display: "Multiple", multipleData: allUsers })
@@ -142,24 +156,25 @@ export default class GetUsername extends Component {
 
     if (this.state.display === "Multiple") {
       //display all in view with a button
-      console.log("**************** the data **************");
-      console.log(this.state.multipleData);
-      //probably need to cast this to a json object? then should be able to print it out in a list view
-
-      //use  the sample search of "robocop" - 8 results
-      //https://facebook.github.io/react-native/docs/flatlist.html 
-      //need a key extractor? https://facebook.github.io/react-native/docs/network.html 
       return (
-        <View style={{ alignItems: 'center', padding: 10, }}>
-          <Text> Found so many users: pick which one is yours! </Text>
+        <List containerStyle={{ borderTopWidth: 0, borderBottomWidth: 0 }}>
           <FlatList
             data={this.state.multipleData}
-            renderItem={({ item }) => <Text>User: {item.username}, Avatar: {item.avatar}, Profile: {item.profile} {"\n"}</Text>}
+            renderItem={({ item }) => (
+              <ListItem
+                roundAvatar
+                title={`${item.username}`}
+                subtitle={item.profile}
+                avatar={{ uri: item.avatar }}
+                containerStyle={{ borderBottomWidth: 0 }}
+                onPress={() => this.setState({ display: true, avatar: item.avatar, username: item.username, wins: item.wins, goals: item.goals, mvps: item.mvps, saves: item.saves, assists: item.assists, signatureUrl: item.signatureUrl })}
+              />
+            )}
+            keyExtractor={item => item.id}
           />
-        </View>
-      );
+        </ List>
+      )
     }
-
   }
 }
 
