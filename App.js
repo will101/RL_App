@@ -1,12 +1,12 @@
 import React, { Component } from 'react';
 import { AppRegistry, Text, TextInput, View, Alert, Button, Image, ReactDOM, SectionList, FlatList } from 'react-native';
-import { List, ListItem, Avatar } from "react-native-elements";
+import { List, ListItem, Avatar, Header } from "react-native-elements";
 
 
 class userObj {
   username;
   avatar;
-  constructor(username, avatar, platform, profile, id, wins, goals, mvps, saves, assists, signatureUrl) {
+  constructor(username, avatar, platform, profile, id, wins, goals, mvps, saves, assists, signatureUrl, shots) {
     this.username = username;
     this.avatar = avatar;
     this.platform = platform;
@@ -18,6 +18,7 @@ class userObj {
     this.saves = saves;
     this.assists = assists;
     this.signatureUrl = signatureUrl;
+    this.shots = shots;
   }
 }
 
@@ -36,9 +37,8 @@ export default class GetUsername extends Component {
         let response = await fetch("https://api.rocketleaguestats.com/v1/search/players?display_name=" + userName, obj)
         let resJSON = await response.json();
         let length = resJSON.totalResults;
-        // console.log("length: " + length);
 
-
+        //output ranked data too!
         if (length === 1) {
           let dataObj = {
             "Avatar": resJSON.data[0].avatar,
@@ -90,7 +90,7 @@ export default class GetUsername extends Component {
             let shots = resJSON.data[i].stats.shots;
             let assists = resJSON.data[i].stats.assists;
             let signatureUrl = resJSON.data[i].signatureUrl;
-            let user = new userObj(userName, avatar, platform, profileUrl, id, wins, goals, mvps, saves, assists, signatureUrl);
+            let user = new userObj(userName, avatar, platform, profileUrl, id, wins, goals, mvps, saves, assists, signatureUrl, shots);
             allUsers.push(user);
           }
           this.setState({ display: "Multiple", multipleData: allUsers })
@@ -183,17 +183,90 @@ export default class GetUsername extends Component {
 
   }
 
+  async getRankedUsers() {
+    let obj = {
+      method: "GET",
+      headers: {
+        Accept: "Application/json",
+        Authorization: "JB2J33D8O694771DF5OOWMSMLYM7WXM2"
+      }
+    }
+    //filter by top!
+    //if that doesnt work then just do seasons?
+    let mvp = await fetch("https://api.rocketleaguestats.com/v1/leaderboard/stat?type=mvps", obj);
+    let mvpJSON = await mvp.json();
+    console.log("test");
+    console.log(mvpJSON.length);
+    let allUsers = [];
+    let avatar;
+    let profileUrl;
+    let platform;
+
+    //looks like its already supported, and $top doesnt want to work!
+    /*
+    for (let i = 0; i < 6; i++) {
+
+      try {
+        avatar = mvpJSON.data[i].avatar
+      }
+      catch (err) {
+        avatar = "";
+      }
+      try {
+        profileUrl = mvpJSON.data[i].profileUrl;
+      }
+      catch (err) {
+        profileUrl = "";
+      }
+      try {
+        platform = mvpJSON.data[i].platform.name;
+      }
+      catch (e) {
+        platform = "";
+      }
+      let id = mvpJSON.data[i].uniqueId;
+      let wins = mvpJSON.data[i].stats.wins;
+      let goals = mvpJSON.data[i].stats.goals;
+      let mvps = mvpJSON.data[i].stats.mvps;
+      let saves = mvpJSON.data[i].stats.saves;
+      let shots = mvpJSON.data[i].stats.shots;
+      let assists = mvpJSON.data[i].stats.assists;
+      let signatureUrl = mvpJSON.data[i].signatureUrl;
+      let user = new userObj(userName, avatar, platform, profileUrl, id, wins, goals, mvps, saves, assists, signatureUrl, shots);
+      allUsers.push(user);
+    }
+    this.setState({ display: "Multiple", multipleData: allUsers })
+*/
+  }
+
+
+
+
+
+
+
   constructor(props) {
     super(props);
-    this.state = { text: '', display: false, length: '', username: '', singlePlayerData: {}, multipleData: [] };
+    this.state = { text: '', display: false, length: '', username: '', singlePlayerData: {}, multipleData: [], menu: '' };
     this.SearchForUser = this.SearchForUser.bind(this);
     this.getUserFromID = this.getUserFromID.bind(this);
   }
 
   render() {
+    this.getRankedUsers();
+
     if (this.state.display === false) {
       return (
-        <View style={{ alignItems: 'center', padding: 10, }}>
+
+        <View style={{}}>
+          <Header
+            placement="left"
+            leftComponent={{ icon: 'menu', onPress: () => this.setState({ menu: open }), color: '#fff' }}
+            centerComponent={{ text: 'Rocket League Stats App!', style: { color: '#fff' } }}
+            rightComponent={{ icon: 'home', onPress: () => this.setState({ display: false }), color: '#fff' }}
+            style={{ alignSelf: 'stretch' }}
+          />
+
           <Text>Welcome to the Rocket league Stats app </Text>
           <Text>Enter username or steam id</Text>
           <TextInput style={{ height: 40, width: 200 }} placeholder="Enter username or id here!" onChangeText={(text) => this.setState({ text })} />
@@ -208,7 +281,14 @@ export default class GetUsername extends Component {
 
       if (this.state.avatar == "") {
         return (
-          <View style={{ alignItems: 'center', padding: 10, }}>
+          <View style={{}}>
+            <Header
+              placement="left"
+              leftComponent={{ icon: 'menu', onPress: () => this.setState({ menu: open }), color: '#fff' }}
+              centerComponent={{ text: 'Rocket League Stats App!', style: { color: '#fff' } }}
+              rightComponent={{ icon: 'home', onPress: () => this.setState({ display: false }), color: '#fff' }}
+              style={{ alignSelf: 'stretch' }}
+            />
             <Avatar
               large
               rounded
@@ -228,7 +308,14 @@ export default class GetUsername extends Component {
       }
       else {
         return (
-          <View style={{ alignItems: 'center', padding: 10, }}>
+          <View style={{}}>
+            <Header
+              placement="left"
+              leftComponent={{ icon: 'menu', onPress: () => this.setState({ menu: open }), color: '#fff' }}
+              centerComponent={{ text: 'Rocket League Stats App!', style: { color: '#fff' } }}
+              rightComponent={{ icon: 'home', onPress: () => this.setState({ display: false }), color: '#fff' }}
+              style={{ alignSelf: 'stretch' }}
+            />
             <Avatar
               large
               rounded
@@ -252,7 +339,14 @@ export default class GetUsername extends Component {
     if (this.state.display === "Not found") {
 
       return (
-        <View style={{ alignItems: 'center', padding: 10, }}>
+        <View style={{}}>
+          <Header
+            placement="left"
+            leftComponent={{ icon: 'menu', onPress: () => this.setState({ menu: open }), color: '#fff' }}
+            centerComponent={{ text: 'Rocket League Stats App!', style: { color: '#fff' } }}
+            rightComponent={{ icon: 'home', onPress: () => this.setState({ display: false }), color: '#fff' }}
+            style={{ alignSelf: 'stretch' }}
+          />
           <Text>User '{this.state.text}' not found. </Text>
           <Text>Try entering your steam id instead:</Text>
           <TextInput style={{ height: 40, width: 200 }} placeholder="Enter steam id" onChangeText={(text) => this.setState({ text })} />
@@ -264,7 +358,15 @@ export default class GetUsername extends Component {
     if (this.state.display === "Multiple") {
       //display all in view with a button
       return (
+
         <List containerStyle={{ borderTopWidth: 0, borderBottomWidth: 0 }}>
+          <Header
+            placement="left"
+            leftComponent={{ icon: 'menu', onPress: () => this.setState({ menu: open }), color: '#fff' }}
+            centerComponent={{ text: 'Rocket League Stats App!', style: { color: '#fff' } }}
+            rightComponent={{ icon: 'home', onPress: () => this.setState({ display: false }), color: '#fff' }}
+            style={{ alignSelf: 'stretch' }}
+          />
           <FlatList
             data={this.state.multipleData}
             renderItem={({ item }) => (
@@ -274,7 +376,21 @@ export default class GetUsername extends Component {
                 subtitle={`Platform: ${item.platform}, Goals: ${item.goals}`}
                 avatar={{ uri: item.avatar }}
                 containerStyle={{ borderBottomWidth: 0 }}
-                onPress={() => this.setState({ display: true, avatar: item.avatar, username: item.username, wins: item.wins, goals: item.goals, mvps: item.mvps, saves: item.saves, assists: item.assists, signatureUrl: item.signatureUrl })}
+                onPress={() => this.setState({
+                  display: true, singlePlayerData:
+                    {
+                      "Avatar": item.avatar,
+                      "Platform": item.platform,
+                      "Wins": item.wins,
+                      "Goals": item.goals,
+                      "Mvps": item.mvps,
+                      "Saves": item.saves,
+                      "Shots": item.shots,
+                      "Assists": item.assists,
+                      "ProfileUrl": item.profileUrl,
+                      "SignatureUrl": item.signatureUrl
+                    }
+                })}
               />
             )}
             keyExtractor={item => item.id}
