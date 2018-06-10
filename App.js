@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
-import { AppRegistry, Text, TextInput, View, Alert, Button, Image, ReactDOM, SectionList, FlatList } from 'react-native';
+import { AppRegistry, Text, TextInput, View, Alert, Button, Image, ReactDOM, SectionList, FlatList, StyleSheet, ScrollView } from 'react-native';
 import { List, ListItem, Avatar, Header, ButtonGroup, CheckBox } from "react-native-elements";
-
+import { VictoryBar, VictoryChart, VictoryTheme, VictoryPie } from "victory-native";
 
 class userObj {
   username;
@@ -22,10 +22,44 @@ class userObj {
   }
 }
 
+class MenuComponent extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { open: false };
+
+  }
+  //setState isnt working!
+  render() {
+
+    if (this.state.open === false) {
+      return (
+        <View style={{}}>
+          <Button title="Open Menu" color="#ADD8E6" onPress={() => this.setState({ open: true })} />
+        </View>
+      );
+    }
+
+    //style this properly!
+    //or try this? might ake everything cleaner: https://reactnavigation.org/docs/en/getting-started.html 
+    if (this.state.open === true) {
+      return (
+        <View style={{}}>
+          <Text>Menu!</Text>
+          <Button title="Search" color="#ADD8E6" />
+          <Button title="Search by Steam ID" color="#ADD8E6" />
+          <Button title="Rocket League Stat Leaderboard" color="#ADD8E6" />
+          <Button title="Rocket League Tips" color="#ADD8E6" />
+        </View>
+      );
+    }
+
+  }
+}
+
 export default class GetUsername extends Component {
   constructor(props) {
     super(props);
-    this.state = { text: '', display: false, length: '', username: '', singlePlayerData: {}, multipleData: [], menu: '', selectedIndex: 0, stat: '', checked: false, showStats: false };
+    this.state = { text: '', display: false, length: '', username: '', singlePlayerData: {}, multipleData: [], menu: '', selectedIndex: 0, stat: '', rankedData: [], showStats: false };
     this.SearchForUser = this.SearchForUser.bind(this);
     this.getUserFromID = this.getUserFromID.bind(this);
     this.updateIndex = this.updateIndex.bind(this)
@@ -49,6 +83,7 @@ export default class GetUsername extends Component {
         //output ranked data too!
         if (length === 1) {
           let dataObj = {
+            "UserName": resJSON.data[0].displayName,
             "Avatar": resJSON.data[0].avatar,
             "Platform": resJSON.data[0].platform.name,
             "Wins": resJSON.data[0].stats.wins,
@@ -61,8 +96,17 @@ export default class GetUsername extends Component {
             "SignatureUrl": resJSON.data[0].signatureUrl
           }
 
-          //this re renders the component!
-          this.setState({ display: true, length: length++, username: userName, singlePlayerData: dataObj });
+          //if we have ranked data, pass the state a new object
+          let ranked = resJSON.data[0].rankedSeasons;
+          if (ranked != "") {
+            //handle the ranked data and put it into an array! then we will put it into a list or some other nice format!
+            let season6singles = new seasonData(6, "singles", division, tier, played, points);
+            this.setState({ display: true, length: length++, username: userName, singlePlayerData: dataObj, rankedData: ranked });
+          }
+          else {
+
+            this.setState({ display: true, length: length++, username: userName, singlePlayerData: dataObj });
+          }
 
         }
         else if (length > 1) {
@@ -140,6 +184,7 @@ export default class GetUsername extends Component {
   }
 
 
+
   async getUserFromID(userId) {
     let obj = {
       method: "GET",
@@ -174,6 +219,7 @@ export default class GetUsername extends Component {
 
 
     let dataObj = {
+      "UserName": userJSON.displayName,
       "Avatar": avatar,
       "Platform": userJSON.platform.name,
       "Wins": userJSON.stats.wins,
@@ -280,28 +326,57 @@ export default class GetUsername extends Component {
     this.getTopStats(selectedIndex);
   }
 
+
+
   render() {
     const buttons = ["Mvps", "Goals", "Wins", "Shots", "Saves", "Assists"];
+    const styles = StyleSheet.create({
+      container: {
+        borderRadius: 4,
+        borderWidth: 0.5,
+        borderColor: '#d6d7da',
+      },
+      title: {
+        fontSize: 19,
+        fontWeight: 'bold',
+      },
+      userTitle: {
+        fontSize: 22,
+        fontWeight: 'bold',
+
+      },
+      playerContainer: {
+        alignItems: 'center',
+        paddingVertical: 20,
+
+      },
+      label: {
+        fontWeight: 'bold'
+      },
+      menuLeft: {
+
+      },
+
+
+    });
 
     if (this.state.display === false && this.state.showStats === false) {
       return (
         <View style={{}}>
           <Header
             placement="left"
-            leftComponent={{ icon: 'menu', onPress: () => this.setState({ menu: open }), color: '#fff' }}
+            leftComponent={<MenuComponent />}
             centerComponent={{ text: 'Rocket League Stats App!', style: { color: '#fff' } }}
             rightComponent={{ icon: 'home', onPress: () => this.setState({ display: false }), color: '#fff' }}
             style={{ alignSelf: 'stretch' }}
           />
 
-          <Text>Welcome to the Rocket league Stats app </Text>
-          <Text>Enter username or steam id</Text>
+          <Text style={styles.title}>Enter username or steam id:</Text>
           <TextInput style={{ height: 40, width: 200 }} placeholder="Enter username or id here!" onChangeText={(text) => this.setState({ text })} />
           <Button title="Get Stats" color="#ADD8E6" onPress={() => this.SearchForUser(this.state.text)} />
 
           <Text>{"\n"}</Text>
-          <CheckBox
-            checked={this.state.checked}
+          <Button
             onPress={() => this.updateIndex(this.state.selectedIndex)}
             title="Show stat leaderboard!"
           />
@@ -321,9 +396,7 @@ export default class GetUsername extends Component {
             rightComponent={{ icon: 'home', onPress: () => this.setState({ display: false }), color: '#fff' }}
             style={{ alignSelf: 'stretch' }}
           />
-
-          <Text>Welcome to the Rocket league Stats app </Text>
-          <Text>Enter username or steam id</Text>
+          <Text style={styles.title}>Enter username or steam id:</Text>
           <TextInput style={{ height: 40, width: 200 }} placeholder="Enter username or id here!" onChangeText={(text) => this.setState({ text })} />
           <Button title="Get Stats" color="#ADD8E6" onPress={() => this.SearchForUser(this.state.text)} />
 
@@ -356,6 +429,7 @@ export default class GetUsername extends Component {
                   onPress={() => this.setState({
                     display: true, singlePlayerData:
                       {
+                        "UserName": item.username,
                         "Avatar": item.avatar,
                         "Platform": item.platform,
                         "Wins": item.wins,
@@ -377,13 +451,19 @@ export default class GetUsername extends Component {
       );
     }
     if (this.state.display === true) {
-      let initials = this.state.username.slice(0, 2).toString();
-      console.log("initials!");
-      console.log(initials);
+
+      let goalToShot = parseInt(this.state.singlePlayerData.Goals) / parseInt(this.state.singlePlayerData.Shots);
+      let totalPercentage = Math.round(goalToShot * 100);
+      let mvpWins = parseInt(this.state.singlePlayerData.Mvps) / parseInt(this.state.singlePlayerData.Wins);
+      let totalMvpWins = Math.round(mvpWins * 100);
+
 
       if (this.state.avatar == "") {
+        let initials = this.state.username.slice(0, 2).toString();
+        console.log("initials!");
+        console.log(initials);
         return (
-          <View style={{}}>
+          <View>
             <Header
               placement="left"
               leftComponent={{ icon: 'menu', onPress: () => this.setState({ menu: open }), color: '#fff' }}
@@ -391,26 +471,49 @@ export default class GetUsername extends Component {
               rightComponent={{ icon: 'home', onPress: () => this.setState({ display: false }), color: '#fff' }}
               style={{ alignSelf: 'stretch' }}
             />
-            <Avatar
-              large
-              rounded
-              title={initials}
-              activeOpacity={0.7}
-            />
-            <Text>Wins: {this.state.singlePlayerData.Wins} </Text>
-            <Text> Goals: {this.state.singlePlayerData.Goals} </Text>
-            <Text>MVP's: {this.state.singlePlayerData.Mvps}</Text>
-            <Text>Saves: {this.state.singlePlayerData.Saves}</Text>
-            <Text>Shots: {this.state.singlePlayerData.Shots}</Text>
-            <Text>Assists: {this.state.singlePlayerData.Assists}</Text>
-            <Image source={{ uri: this.state.singlePlayerData.signatureUrl }} style={{ width: 400, height: 100 }} />
-            <Button title="Search Again" color="#00B200" onPress={() => this.setState({ display: false })} />
+            <ScrollView contentContainerStyle={styles.playerContainer}>
+              <Text style={styles.userTitle}>Stats for: {this.state.singlePlayerData.UserName} </Text>
+
+              <Text style={styles.title}>Play style: </Text>
+              <Text>{"\n"}</Text>
+              <VictoryPie
+                height={300}
+                width={450}
+                theme={VictoryTheme.material}
+                data={[
+                  { x: "1", y: parseInt(this.state.singlePlayerData.Wins), label: "Wins: " + this.state.singlePlayerData.Wins.toString() },
+                  { x: "2", y: parseInt(this.state.singlePlayerData.Goals), label: "Goals: " + this.state.singlePlayerData.Goals.toString() },
+                  { x: "3", y: parseInt(this.state.singlePlayerData.Mvps), label: "Mvp's: " + this.state.singlePlayerData.Mvps.toString() },
+                  { x: "4", y: parseInt(this.state.singlePlayerData.Shots), label: "Shots: " + this.state.singlePlayerData.Shots.toString() },
+                  { x: "5", y: parseInt(this.state.singlePlayerData.Saves), label: "Saves: " + this.state.singlePlayerData.Saves.toString() },
+                  { x: "6", y: parseInt(this.state.singlePlayerData.Assists), label: "Assists: " + this.state.singlePlayerData.Assists.toString() }
+                ]}
+              />
+
+              <Text>Goal/Shot % -  {totalPercentage}%</Text>
+              <Text>MVP/Wins % -  {totalMvpWins}%</Text>
+
+              <Text style={styles.title}>Ranked: </Text>
+
+              <Button title="Search Again" color="#00B200" onPress={() => this.setState({ display: false })} />
+            </ScrollView >
           </View >
+
         );
       }
       else {
+
+        //steal some graph ideas from rltracker or rlstats.com
+        //have the signature url at the very bottom so they can share it to friends etc - 
+        // <Image source={{ uri: this.state.singlePlayerData.SignatureUrl }} style={{ width: 400, height: 100 }} /> 
+
+
+        let goalToShot = parseInt(this.state.singlePlayerData.Goals) / parseInt(this.state.singlePlayerData.Shots);
+        let totalPercentage = Math.round(goalToShot * 100);
+        let mvpWins = parseInt(this.state.singlePlayerData.Mvps) / parseInt(this.state.singlePlayerData.Wins);
+        let totalMvpWins = Math.round(mvpWins * 100);
         return (
-          <View style={{}}>
+          <View>
             <Header
               placement="left"
               leftComponent={{ icon: 'menu', onPress: () => this.setState({ menu: open }), color: '#fff' }}
@@ -418,21 +521,44 @@ export default class GetUsername extends Component {
               rightComponent={{ icon: 'home', onPress: () => this.setState({ display: false }), color: '#fff' }}
               style={{ alignSelf: 'stretch' }}
             />
-            <Avatar
-              large
-              rounded
-              source={{ uri: this.state.singlePlayerData.Avatar }}
-              activeOpacity={0.7}
-            />
-            <Text>Wins: {this.state.singlePlayerData.Wins} </Text>
-            <Text>Goals: {this.state.singlePlayerData.Goals} </Text>
-            <Text>MVP's: {this.state.singlePlayerData.Mvps}</Text>
-            <Text>Saves: {this.state.singlePlayerData.Saves}</Text>
-            <Text>Shots: {this.state.singlePlayerData.Shots}</Text>
-            <Text>Assists: {this.state.singlePlayerData.Assists}</Text>
-            <Image source={{ uri: this.state.singlePlayerData.signatureUrl }} style={{ width: 400, height: 100 }} />
-            <Button title="Search Again" color="#00B200" onPress={() => this.setState({ display: false })} />
+            <ScrollView contentContainerStyle={styles.playerContainer}>
+              <Text style={styles.userTitle}>Stats for: {this.state.singlePlayerData.UserName} </Text>
+
+              <Text style={styles.title}>Play style: {"\n"}</Text>
+              <VictoryPie
+                height={300}
+                width={450}
+                theme={VictoryTheme.material}
+                data={[
+                  { x: "1", y: parseInt(this.state.singlePlayerData.Wins), label: "Wins: " + this.state.singlePlayerData.Wins.toString() },
+                  { x: "2", y: parseInt(this.state.singlePlayerData.Goals), label: "Goals: " + this.state.singlePlayerData.Goals.toString() },
+                  { x: "3", y: parseInt(this.state.singlePlayerData.Mvps), label: "Mvp's: " + this.state.singlePlayerData.Mvps.toString() },
+                  { x: "4", y: parseInt(this.state.singlePlayerData.Shots), label: "Shots: " + this.state.singlePlayerData.Shots.toString() },
+                  { x: "5", y: parseInt(this.state.singlePlayerData.Saves), label: "Saves: " + this.state.singlePlayerData.Saves.toString() },
+                  { x: "6", y: parseInt(this.state.singlePlayerData.Assists), label: "Assists: " + this.state.singlePlayerData.Assists.toString() }
+                ]}
+              />
+
+              <Text>Goal/Shot % -  {totalPercentage}%</Text>
+              <Text>MVP/Wins % -  {totalMvpWins}%</Text>
+
+              <Text style={styles.title}>Ranked: </Text>
+              <List containerStyle={{ borderTopWidth: 0, borderBottomWidth: 0 }}>
+                <FlatList
+                  data={this.state.rankedData}
+                  renderItem={({ item }) => (
+                    <ListItem
+                      title={`${item.division}`}
+                      subtitle={`Matches Played: ${item.matchesPlayed}, Rank points: ${item.rankPoints}, Tier: ${item.tier}`}
+                      containerStyle={{ borderBottomWidth: 0 }}
+                    />
+                  )}
+                />
+              </ List>
+              <Button title="Search Again" color="#00B200" onPress={() => this.setState({ display: false })} />
+            </ScrollView>
           </View >
+
         );
       }
 
@@ -481,6 +607,7 @@ export default class GetUsername extends Component {
                 onPress={() => this.setState({
                   display: true, singlePlayerData:
                     {
+                      "UserName": item.username,
                       "Avatar": item.avatar,
                       "Platform": item.platform,
                       "Wins": item.wins,
