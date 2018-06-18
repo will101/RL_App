@@ -22,6 +22,15 @@ class userObj {
   }
 }
 
+class seasonObj {
+  constructor(season, singles, doubles, triples) {
+    this.season = season;
+    this.singles = singles;
+    this.doubles = doubles;
+    this.triples = triples;
+  }
+}
+
 class MenuComponent extends Component {
   constructor(props) {
     super(props);
@@ -95,17 +104,50 @@ export default class GetUsername extends Component {
             "ProfileUrl": resJSON.data[0].profileUrl,
             "SignatureUrl": resJSON.data[0].signatureUrl
           }
-
+          this.setState({ display: true, length: length++, username: userName, singlePlayerData: dataObj });
           //if we have ranked data, pass the state a new object
           let ranked = resJSON.data[0].rankedSeasons;
+
+          let rankedData = [];
           if (ranked != "") {
-            //handle the ranked data and put it into an array! then we will put it into a list or some other nice format!
-            let season6singles = new seasonData(6, "singles", division, tier, played, points);
-            this.setState({ display: true, length: length++, username: userName, singlePlayerData: dataObj, rankedData: ranked });
+            //get all ranked data if we have any
+            let seasons = Object.keys(ranked);
+            let seasonsLength = seasons[seasons.length - 1];
+            let seasonsProperLength = ++seasonsLength; //get the last elements value (a number) then add 1 for the length!
+
+            //go through seasons
+            for (let i = 6; i < seasonsProperLength; i++) {
+              let singles;
+              let doubles;
+              let triples;
+              try {
+                singles = ranked[i][11];
+              }
+              catch (e) {
+                singles = null;
+              }
+              try {
+                doubles = ranked[i][12];
+              }
+              catch (e) {
+                doubles = null;
+              }
+              try {
+                triples = ranked[i][13];
+              }
+              catch (e) {
+                triples = null;
+              }
+              let seasonObject = new seasonObj(i, singles, doubles, triples);
+              rankedData.push(seasonObject);
+            }
+            console.log("All ranked data!");
+            console.log(rankedData);
+            this.setState({ display: true, length: length++, username: userName, singlePlayerData: dataObj, rankedData: rankedData });
           }
           else {
 
-            this.setState({ display: true, length: length++, username: userName, singlePlayerData: dataObj });
+
           }
 
         }
@@ -428,19 +470,19 @@ export default class GetUsername extends Component {
                   containerStyle={{ borderBottomWidth: 0 }}
                   onPress={() => this.setState({
                     display: true, singlePlayerData:
-                      {
-                        "UserName": item.username,
-                        "Avatar": item.avatar,
-                        "Platform": item.platform,
-                        "Wins": item.wins,
-                        "Goals": item.goals,
-                        "Mvps": item.mvps,
-                        "Saves": item.saves,
-                        "Shots": item.shots,
-                        "Assists": item.assists,
-                        "ProfileUrl": item.profileUrl,
-                        "SignatureUrl": item.signatureUrl
-                      }
+                    {
+                      "UserName": item.username,
+                      "Avatar": item.avatar,
+                      "Platform": item.platform,
+                      "Wins": item.wins,
+                      "Goals": item.goals,
+                      "Mvps": item.mvps,
+                      "Saves": item.saves,
+                      "Shots": item.shots,
+                      "Assists": item.assists,
+                      "ProfileUrl": item.profileUrl,
+                      "SignatureUrl": item.signatureUrl
+                    }
                   })}
                 />
               )}
@@ -492,8 +534,24 @@ export default class GetUsername extends Component {
 
               <Text>Goal/Shot % -  {totalPercentage}%</Text>
               <Text>MVP/Wins % -  {totalMvpWins}%</Text>
-
               <Text style={styles.title}>Ranked: </Text>
+
+              <Text>Your ranked data:</Text>
+              <List containerStyle={{ borderTopWidth: 0, borderBottomWidth: 0, }}>
+                <Text>Stat leaderboard for {this.state.stat}:</Text>
+                <FlatList
+                  data={this.state.rankedData}
+                  renderItem={({ item }) => (
+                    <ListItem
+                      title={`${item.season}`}
+                      subtitle={`Singles: Matches played: ${item.singles.matchesPlayed}, Division: ${item.singles.division} Rank points: ${item.singles.rankPoints}, Tier: ${item.singles.tier}`}
+                      containerStyle={{ borderBottomWidth: 0 }}
+                    />
+                  )}
+                  keyExtractor={item => item.id}
+                />
+              </ List>
+
 
               <Button title="Search Again" color="#00B200" onPress={() => this.setState({ display: false })} />
             </ScrollView >
@@ -548,6 +606,7 @@ export default class GetUsername extends Component {
                   data={this.state.rankedData}
                   renderItem={({ item }) => (
                     <ListItem
+                      //just work out how to display this as we have it in the format we need (i think!)
                       title={`${item.division}`}
                       subtitle={`Matches Played: ${item.matchesPlayed}, Rank points: ${item.rankPoints}, Tier: ${item.tier}`}
                       containerStyle={{ borderBottomWidth: 0 }}
@@ -606,19 +665,19 @@ export default class GetUsername extends Component {
                 containerStyle={{ borderBottomWidth: 0 }}
                 onPress={() => this.setState({
                   display: true, singlePlayerData:
-                    {
-                      "UserName": item.username,
-                      "Avatar": item.avatar,
-                      "Platform": item.platform,
-                      "Wins": item.wins,
-                      "Goals": item.goals,
-                      "Mvps": item.mvps,
-                      "Saves": item.saves,
-                      "Shots": item.shots,
-                      "Assists": item.assists,
-                      "ProfileUrl": item.profileUrl,
-                      "SignatureUrl": item.signatureUrl
-                    }
+                  {
+                    "UserName": item.username,
+                    "Avatar": item.avatar,
+                    "Platform": item.platform,
+                    "Wins": item.wins,
+                    "Goals": item.goals,
+                    "Mvps": item.mvps,
+                    "Saves": item.saves,
+                    "Shots": item.shots,
+                    "Assists": item.assists,
+                    "ProfileUrl": item.profileUrl,
+                    "SignatureUrl": item.signatureUrl
+                  }
                 })}
               />
             )}
