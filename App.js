@@ -22,7 +22,7 @@ class userObj {
   }
 }
 
-class seasonObj {
+class seasonData {
   constructor(season, singles, doubles, triples) {
     this.season = season;
     this.singles = singles;
@@ -68,10 +68,10 @@ class MenuComponent extends Component {
 export default class GetUsername extends Component {
   constructor(props) {
     super(props);
-    this.state = { text: '', display: false, length: '', username: '', singlePlayerData: {}, multipleData: [], menu: '', selectedIndex: 0, stat: '', rankedData: [], showStats: false };
+    this.state = { text: '', display: false, length: '', username: '', singlePlayerData: {}, multipleData: [], menu: '', selectedIndex: 0, stat: '', rankedData: [], showStats: false, haveRanked: false };
     this.SearchForUser = this.SearchForUser.bind(this);
     this.getUserFromID = this.getUserFromID.bind(this);
-    this.updateIndex = this.updateIndex.bind(this)
+    this.updateIndex = this.updateIndex.bind(this);
   }
 
   async SearchForUser(userName) {
@@ -92,6 +92,7 @@ export default class GetUsername extends Component {
         //output ranked data too!
         if (length === 1) {
           let dataObj = {
+            "id": resJSON.data[0].unieueId,
             "UserName": resJSON.data[0].displayName,
             "Avatar": resJSON.data[0].avatar,
             "Platform": resJSON.data[0].platform.name,
@@ -104,52 +105,59 @@ export default class GetUsername extends Component {
             "ProfileUrl": resJSON.data[0].profileUrl,
             "SignatureUrl": resJSON.data[0].signatureUrl
           }
-          this.setState({ display: true, length: length++, username: userName, singlePlayerData: dataObj });
-          //if we have ranked data, pass the state a new object
-          let ranked = resJSON.data[0].rankedSeasons;
-
+          //will redo this at some point to make it more dynamic! 
+          //we already have the ranked data, so format and put in something like dataObj 
           let rankedData = [];
-          if (ranked != "") {
-            //get all ranked data if we have any
-            let seasons = Object.keys(ranked);
-            let seasonsLength = seasons[seasons.length - 1];
-            let seasonsProperLength = ++seasonsLength; //get the last elements value (a number) then add 1 for the length!
+          //do this in a for , for each season!
+          for (let i = 6; i < 9; i++) {
+            //get the keys for this season
+            let seasonKeys = Object.keys(resJSON.data[0].rankedSeasons[i]);
+            //check what exists in the array
+            let singlesPos = seasonKeys.indexOf("11");
+            let doublePos = seasonKeys.indexOf("12");
+            let triplePos = seasonKeys.indexOf("13");
+            let singlesData;
+            let doublesData;
+            let triplesData;
 
-            //go through seasons
-            for (let i = 6; i < seasonsProperLength; i++) {
-              let singles;
-              let doubles;
-              let triples;
-              try {
-                singles = ranked[i][11];
+            if (singlesPos != -1 && resJSON.data[0].rankedSeasons[i][11].matchesPlayed > 0) {
+              singlesData = {
+                "division": resJSON.data[0].rankedSeasons[i][11].division,
+                "matchesPlayed": resJSON.data[0].rankedSeasons[i][11].matchesPlayed,
+                "rankPoints": resJSON.data[0].rankedSeasons[i][11].rankPoints,
+                "tier": resJSON.data[0].rankedSeasons[i][11].tier
               }
-              catch (e) {
-                singles = null;
-              }
-              try {
-                doubles = ranked[i][12];
-              }
-              catch (e) {
-                doubles = null;
-              }
-              try {
-                triples = ranked[i][13];
-              }
-              catch (e) {
-                triples = null;
-              }
-              let seasonObject = new seasonObj(i, singles, doubles, triples);
-              rankedData.push(seasonObject);
             }
-            console.log("All ranked data!");
-            console.log(rankedData);
-            this.setState({ display: true, length: length++, username: userName, singlePlayerData: dataObj, rankedData: rankedData });
+            else {
+              singlesData = null;
+            }
+
+            if (doublePos != -1 && resJSON.data[0].rankedSeasons[i][12].matchesPlayed > 0) {
+              doublesData = {
+                "division": resJSON.data[0].rankedSeasons[i][12].division,
+                "matchesPlayed": resJSON.data[0].rankedSeasons[i][12].matchesPlayed,
+                "rankPoints": resJSON.data[0].rankedSeasons[i][12].rankPoints,
+                "tier": resJSON.data[0].rankedSeasons[i][12].tier
+              }
+            }
+            else {
+              doublesData = null;
+            }
+            if (triplePos != -1 && resJSON.data[0].rankedSeasons[i][13].matchesPlayed > 0) {
+              triplesData = {
+                "division": resJSON.data[0].rankedSeasons[i][13].division,
+                "matchesPlayed": resJSON.data[0].rankedSeasons[i][13].matchesPlayed,
+                "rankPoints": resJSON.data[0].rankedSeasons[i][13].rankPoints,
+                "tier": resJSON.data[0].rankedSeasons[i][13].tier
+              }
+            }
+            else {
+              triplesData = null;
+            }
+            //push an object, format of season:{playlist data, playlist data, playlist data}
+            rankedData.push(new seasonData(i, singlesData, doublesData, triplesData));
           }
-          else {
-
-
-          }
-
+          this.setState({ display: true, length: length++, username: userName, singlePlayerData: dataObj, rankedData: rankedData });
         }
         else if (length > 1) {
           //loop through the data and put it into an array, then put it in a list view where the user selects which one is them... then we will display their data
@@ -534,23 +542,7 @@ export default class GetUsername extends Component {
 
               <Text>Goal/Shot % -  {totalPercentage}%</Text>
               <Text>MVP/Wins % -  {totalMvpWins}%</Text>
-              <Text style={styles.title}>Ranked: </Text>
 
-              <Text>Your ranked data:</Text>
-              <List containerStyle={{ borderTopWidth: 0, borderBottomWidth: 0, }}>
-                <Text>Stat leaderboard for {this.state.stat}:</Text>
-                <FlatList
-                  data={this.state.rankedData}
-                  renderItem={({ item }) => (
-                    <ListItem
-                      title={`${item.season}`}
-                      subtitle={`Singles: Matches played: ${item.singles.matchesPlayed}, Division: ${item.singles.division} Rank points: ${item.singles.rankPoints}, Tier: ${item.singles.tier}`}
-                      containerStyle={{ borderBottomWidth: 0 }}
-                    />
-                  )}
-                  keyExtractor={item => item.id}
-                />
-              </ List>
 
 
               <Button title="Search Again" color="#00B200" onPress={() => this.setState({ display: false })} />
@@ -570,6 +562,7 @@ export default class GetUsername extends Component {
         let totalPercentage = Math.round(goalToShot * 100);
         let mvpWins = parseInt(this.state.singlePlayerData.Mvps) / parseInt(this.state.singlePlayerData.Wins);
         let totalMvpWins = Math.round(mvpWins * 100);
+
         return (
           <View>
             <Header
@@ -600,23 +593,9 @@ export default class GetUsername extends Component {
               <Text>Goal/Shot % -  {totalPercentage}%</Text>
               <Text>MVP/Wins % -  {totalMvpWins}%</Text>
 
-              <Text style={styles.title}>Ranked: </Text>
-              <List containerStyle={{ borderTopWidth: 0, borderBottomWidth: 0 }}>
-                <FlatList
-                  data={this.state.rankedData}
-                  renderItem={({ item }) => (
-                    <ListItem
-                      //just work out how to display this as we have it in the format we need (i think!)
-                      title={`${item.division}`}
-                      subtitle={`Matches Played: ${item.matchesPlayed}, Rank points: ${item.rankPoints}, Tier: ${item.tier}`}
-                      containerStyle={{ borderBottomWidth: 0 }}
-                    />
-                  )}
-                />
-              </ List>
-              <Button title="Search Again" color="#00B200" onPress={() => this.setState({ display: false })} />
+              <Text>Ranked data: </Text>
             </ScrollView>
-          </View >
+          </View>
 
         );
       }
