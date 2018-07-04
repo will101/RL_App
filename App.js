@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { AppRegistry, Text, TextInput, View, Alert, Button, Image, ReactDOM, SectionList, FlatList, StyleSheet, ScrollView } from 'react-native';
 import { List, ListItem, Avatar, Header, ButtonGroup, CheckBox } from "react-native-elements";
 import { VictoryBar, VictoryChart, VictoryTheme, VictoryPie } from "victory-native";
+import { Table, TableWrapper, Row, Rows, Col, Cols, Cell } from 'react-native-table-component';
 
 class userObj {
   username;
@@ -129,7 +130,12 @@ export default class GetUsername extends Component {
               }
             }
             else {
-              singlesData = null;
+              singlesData = {
+                "division": "",
+                "matchesPlayed": "",
+                "rankPoints": "",
+                "tier": ""
+              }
             }
 
             if (doublePos != -1 && resJSON.data[0].rankedSeasons[i][12].matchesPlayed > 0) {
@@ -141,7 +147,12 @@ export default class GetUsername extends Component {
               }
             }
             else {
-              doublesData = null;
+              doublesData = {
+                "division": "",
+                "matchesPlayed": "",
+                "rankPoints": "",
+                "tier": ""
+              }
             }
             if (triplePos != -1 && resJSON.data[0].rankedSeasons[i][13].matchesPlayed > 0) {
               triplesData = {
@@ -152,7 +163,12 @@ export default class GetUsername extends Component {
               }
             }
             else {
-              triplesData = null;
+              triplesData = {
+                "division": "",
+                "matchesPlayed": "",
+                "rankPoints": "",
+                "tier": ""
+              }
             }
             //push an object, format of season:{playlist data, playlist data, playlist data}
             rankedData.push(new seasonData(i, singlesData, doublesData, triplesData));
@@ -406,6 +422,10 @@ export default class GetUsername extends Component {
       menuLeft: {
 
       },
+      head: { height: 40, backgroundColor: '#f1f8ff' },
+      tableContainer: { flex: 1, padding: 16, paddingTop: 30, backgroundColor: '#fff' },
+      head: { height: 40, backgroundColor: '#f1f8ff' },
+      text: { margin: 6 }
 
 
     });
@@ -506,7 +526,8 @@ export default class GetUsername extends Component {
       let totalPercentage = Math.round(goalToShot * 100);
       let mvpWins = parseInt(this.state.singlePlayerData.Mvps) / parseInt(this.state.singlePlayerData.Wins);
       let totalMvpWins = Math.round(mvpWins * 100);
-
+      console.log("DISPLAY IS TRUE");
+      console.log(this.state.rankedData);
 
       if (this.state.avatar == "") {
         let initials = this.state.username.slice(0, 2).toString();
@@ -552,16 +573,13 @@ export default class GetUsername extends Component {
         );
       }
       else {
-
-        //steal some graph ideas from rltracker or rlstats.com
-        //have the signature url at the very bottom so they can share it to friends etc - 
-        // <Image source={{ uri: this.state.singlePlayerData.SignatureUrl }} style={{ width: 400, height: 100 }} /> 
-
-
         let goalToShot = parseInt(this.state.singlePlayerData.Goals) / parseInt(this.state.singlePlayerData.Shots);
         let totalPercentage = Math.round(goalToShot * 100);
         let mvpWins = parseInt(this.state.singlePlayerData.Mvps) / parseInt(this.state.singlePlayerData.Wins);
         let totalMvpWins = Math.round(mvpWins * 100);
+
+        //to display the ranked data try and use this: https://www.npmjs.com/package/react-native-table-component 
+        //looks simple enough to use!
 
         return (
           <View>
@@ -594,6 +612,30 @@ export default class GetUsername extends Component {
               <Text>MVP/Wins % -  {totalMvpWins}%</Text>
 
               <Text>Ranked data: </Text>
+
+              <FlatList
+                data={this.state.rankedData}
+                renderItem={({ item }) => <Text>Season: {item.season} &nbsp;
+                  <Text> 1 V 1: </Text>
+                  <Text>Division: {item.singles.division}</Text>
+                  <Text>Matches played: {item.singles.matchesPlayed}</Text>
+                  <Text>Rank points: {item.singles.rankPoints} </Text>
+                  <Text>Tier: {item.singles.tier}</Text>
+
+                  <Text> 2 V 2: </Text>
+                  <Text>Division: {item.doubles.division}</Text>
+                  <Text>Matches played: {item.doubles.matchesPlayed}</Text>
+                  <Text>Rank points: {item.doubles.rankPoints} </Text>
+                  <Text>Tier: {item.doubles.tier}</Text>
+
+                  <Text> 3 V 3: </Text>
+                  <Text>Division: {item.triples.division}</Text>
+                  <Text>Matches played: {item.triples.matchesPlayed}</Text>
+                  <Text>Rank points: {item.triples.rankPoints} </Text>
+                  <Text>Tier: {item.triples.tier}</Text>
+                </Text>
+                }
+              />
             </ScrollView>
           </View>
 
