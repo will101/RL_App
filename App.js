@@ -279,6 +279,7 @@ export default class GetUsername extends Component {
       }
     }
 
+    //change the platform filter based on what the users platform is
     let platformRest;
     if (userPlatform === "Steam") {
       platformRest = "&platform_id=1";
@@ -294,7 +295,13 @@ export default class GetUsername extends Component {
     }
 
     let userData = await fetch("https://api.rocketleaguestats.com/v1/player?unique_id=" + userId + platformRest, obj);
+    let status = userData.status;
     let userJSON = await userData.json();
+
+    if (status != 200) {
+      console.log("Problem with get user ID rest call." + userData.statusText);
+      Alert("Problem with get user id call. Try a different user." + status);
+    }
 
     //handle nulls for fields that might be null
     let platform;
@@ -318,7 +325,7 @@ export default class GetUsername extends Component {
     catch (e) {
       avatar = "";
     }
-    console.log(userJSON);
+    //console.log(userJSON);
     let dataObj = {
       "id": userJSON.uniqueId,
       "UserName": userJSON.displayName,
