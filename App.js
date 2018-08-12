@@ -217,6 +217,7 @@ export default class GetUsername extends Component {
       catch (err) {
         console.log("ERROR!");
         console.log(err);
+        this.setState({ modalVisible: false })
       }
     }
   }
