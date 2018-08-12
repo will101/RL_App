@@ -24,11 +24,13 @@ class userObj {
 }
 
 class seasonData {
-  constructor(season, singles, doubles, triples) {
+  constructor(season, playlist, matchesPlayed, tier, ranked, division) {
     this.season = season;
-    this.singles = singles;
-    this.doubles = doubles;
-    this.triples = triples;
+    this.playlist = playlist;
+    this.matchesPlayed = matchesPlayed;
+    this.tier = tier;
+    this.ranked = ranked;
+    this.division = division;
   }
 }
 
@@ -93,7 +95,7 @@ export default class GetUsername extends Component {
         //output ranked data too!
         if (length === 1) {
           let dataObj = {
-            "id": resJSON.data[0].unieueId,
+            "id": resJSON.data[0].uniqueId,
             "UserName": resJSON.data[0].displayName,
             "Avatar": resJSON.data[0].avatar,
             "Platform": resJSON.data[0].platform.name,
@@ -106,6 +108,7 @@ export default class GetUsername extends Component {
             "ProfileUrl": resJSON.data[0].profileUrl,
             "SignatureUrl": resJSON.data[0].signatureUrl
           }
+
           //will redo this at some point to make it more dynamic! 
           //we already have the ranked data, so format and put in something like dataObj 
           let rankedData = [];
@@ -125,72 +128,25 @@ export default class GetUsername extends Component {
             let singlesPos = seasonKeys.indexOf("11");
             let doublePos = seasonKeys.indexOf("12");
             let triplePos = seasonKeys.indexOf("13");
-            let singlesData;
-            let doublesData;
-            let triplesData;
+
 
             if (singlesPos != -1 && resJSON.data[0].rankedSeasons[i][11].matchesPlayed > 0) {
-              singlesData = {
-                "division": resJSON.data[0].rankedSeasons[i][11].division,
-                "matchesPlayed": resJSON.data[0].rankedSeasons[i][11].matchesPlayed,
-                "rankPoints": resJSON.data[0].rankedSeasons[i][11].rankPoints,
-                "tier": resJSON.data[0].rankedSeasons[i][11].tier
-              }
+              rankedData.push(new seasonData(i, "Singles", resJSON.data[0].rankedSeasons[i][11].matchesPlayed, resJSON.data[0].rankedSeasons[i][11].tier, resJSON.data[0].rankedSeasons[i][11].rankPoints, resJSON.data[0].rankedSeasons[i][11].division));
             }
-            else {
-              singlesData = {
-                "division": "",
-                "matchesPlayed": "",
-                "rankPoints": "",
-                "tier": ""
-              }
-            }
+
+
 
             if (doublePos != -1 && resJSON.data[0].rankedSeasons[i][12].matchesPlayed > 0) {
-              doublesData = {
-                "division": resJSON.data[0].rankedSeasons[i][12].division,
-                "matchesPlayed": resJSON.data[0].rankedSeasons[i][12].matchesPlayed,
-                "rankPoints": resJSON.data[0].rankedSeasons[i][12].rankPoints,
-                "tier": resJSON.data[0].rankedSeasons[i][12].tier
-              }
+              rankedData.push(new seasonData(i, "Doubles", resJSON.data[0].rankedSeasons[i][12].matchesPlayed, resJSON.data[0].rankedSeasons[i][12].tier, resJSON.data[0].rankedSeasons[i][12].rankPoints, resJSON.data[0].rankedSeasons[i][12].division));
             }
-            else {
-              doublesData = {
-                "division": "",
-                "matchesPlayed": "",
-                "rankPoints": "",
-                "tier": ""
-              }
-            }
+
+
             if (triplePos != -1 && resJSON.data[0].rankedSeasons[i][13].matchesPlayed > 0) {
-              triplesData = {
-                "division": resJSON.data[0].rankedSeasons[i][13].division,
-                "matchesPlayed": resJSON.data[0].rankedSeasons[i][13].matchesPlayed,
-                "rankPoints": resJSON.data[0].rankedSeasons[i][13].rankPoints,
-                "tier": resJSON.data[0].rankedSeasons[i][13].tier
-              }
-            }
-            else {
-              triplesData = {
-                "division": "",
-                "matchesPlayed": "",
-                "rankPoints": "",
-                "tier": ""
-              }
-            }
-            //if everything is an empty string, dont bother setting the state as there's no point rendering it.
-            if (singlesData.matchesPlayed == "" && doublesData.matchesPlayed == "" && triplesData.matchesPlayed === "") {
-              continue;
+              rankedData.push(new seasonData(i, "Triples", resJSON.data[0].rankedSeasons[i][13].matchesPlayed, resJSON.data[0].rankedSeasons[i][13].tier, resJSON.data[0].rankedSeasons[i][13].rankPoints, resJSON.data[0].rankedSeasons[i][13].division));
             }
 
-            //FIX NEEDED HERE!
-            //we dont want to display data with nothing in it!
-            //create a different object, so we only add data to it if their are matches played
-            //what would be ideal is new userRankedData(data), and on render, we just have something that renders all keys
-            //dont spend too long on this, if > 3 hours, just put 0 in instead of "" and concentrate on styling.
-
-            rankedData.push(new seasonData(i, singlesData, doublesData, triplesData));
           }
+
           this.setState({ display: true, length: length++, username: userName, singlePlayerData: dataObj, rankedData: rankedData });
         }
 
@@ -444,8 +400,13 @@ export default class GetUsername extends Component {
       head: { height: 40, backgroundColor: '#f1f8ff' },
       tableContainer: { flex: 1, padding: 16, paddingTop: 30, backgroundColor: '#fff' },
       head: { height: 40, backgroundColor: '#f1f8ff' },
-      text: { margin: 6 }
-
+      text: { margin: 6 },
+      Image: {
+        flex: 1,
+        width: 400,
+        height: 150,
+        resizeMode: 'contain'
+      }
 
     });
 
@@ -545,8 +506,6 @@ export default class GetUsername extends Component {
       let totalPercentage = Math.round(goalToShot * 100);
       let mvpWins = parseInt(this.state.singlePlayerData.Mvps) / parseInt(this.state.singlePlayerData.Wins);
       let totalMvpWins = Math.round(mvpWins * 100);
-      console.log("DISPLAY IS TRUE");
-      console.log(this.state.rankedData);
 
       if (this.state.avatar == "") {
         let initials = this.state.username.slice(0, 2).toString();
@@ -596,7 +555,7 @@ export default class GetUsername extends Component {
         let totalPercentage = Math.round(goalToShot * 100);
         let mvpWins = parseInt(this.state.singlePlayerData.Mvps) / parseInt(this.state.singlePlayerData.Wins);
         let totalMvpWins = Math.round(mvpWins * 100);
-
+        console.log(this.state.singlePlayerData);
 
         return (
           <View>
@@ -627,39 +586,29 @@ export default class GetUsername extends Component {
 
               <Text>Goal/Shot % -  {totalPercentage}%</Text>
               <Text>MVP/Wins % -  {totalMvpWins}%</Text>
-
               <Text>{"\n"}Ranked data:{"\n"} </Text>
 
               <FlatList
                 data={this.state.rankedData}
-                renderItem={({ item }) => <Text>Season: {item.season} {"\n"}
+                renderItem={({ item }) =>
 
-                  <Text> 1 V 1: {"\n"}</Text>
-                  <Text> Division: {item.singles.division}{"\n"}</Text>
-                  <Text>Matches played: {item.singles.matchesPlayed}{"\n"}</Text>
-                  <Text>Rank points: {item.singles.rankPoints}{"\n"} </Text>
-                  <Text>Tier: {item.singles.tier}{"\n"}{"\n"}</Text>
-
-                  <Text> 2 V 2:{"\n"} </Text>
-                  <Text>Division: {item.doubles.division}{"\n"}</Text>
-                  <Text>Matches played: {item.doubles.matchesPlayed}{"\n"}</Text>
-                  <Text>Rank points: {item.doubles.rankPoints}{"\n"} </Text>
-                  <Text>Tier: {item.doubles.tier}{"\n"}{"\n"}</Text>
-
-                  <Text> 3 V 3: {"\n"}</Text>
-                  <Text>Division: {item.triples.division}{"\n"}</Text>
-                  <Text>Matches played: {item.triples.matchesPlayed}{"\n"}</Text>
-                  <Text>Rank points: {item.triples.rankPoints}{"\n"} </Text>
-                  <Text>Tier: {item.triples.tier}{"\n"}</Text>
-                </Text>
+                  <Text>Season: {item.season}{"\n"}
+                    Matches played: {item.matchesPlayed}{"\n"}
+                    Playlist: {item.playlist}{"\n"}
+                    Rank Points: {item.ranked}{"\n"}
+                    Tier: {item.tier} {"\n"}
+                    Division: {item.division} {"\n"}
+                  </Text>
                 }
+              />
+              <Image
+                style={styles.Image}
+                source={{ uri: this.state.singlePlayerData.SignatureUrl }}
               />
             </ScrollView>
           </View>
-
         );
       }
-
     }
 
     if (this.state.display === "Not found") {
