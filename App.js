@@ -267,7 +267,7 @@ export default class GetUsername extends Component {
     }
   }
 
-  async getUserFromID(userId) {
+  async getUserFromID(userId, userPlatform) {
     //get user from ID rather than searching for them by username.
     //this is called from multiple users lists
     this.setState({ modalVisible: true });
@@ -279,8 +279,23 @@ export default class GetUsername extends Component {
       }
     }
 
-    let userData = await fetch("https://api.rocketleaguestats.com/v1/player?unique_id=" + userId + "&platform_id=1", obj);
+    let platformRest;
+    if (userPlatform === "Steam") {
+      platformRest = "&platform_id=1";
+    }
+    else if (userPlatform === "Ps4") {
+      platformRest = "&platform_id=2"
+    }
+    else if (userPlatform === "XboxOne") {
+      platformRest = "&platform_id=3";
+    }
+    else {
+      platformRest = "&platform_id=1";
+    }
+
+    let userData = await fetch("https://api.rocketleaguestats.com/v1/player?unique_id=" + userId + platformRest, obj);
     let userJSON = await userData.json();
+
     //handle nulls for fields that might be null
     let platform;
     let profile;
@@ -303,6 +318,7 @@ export default class GetUsername extends Component {
     catch (e) {
       avatar = "";
     }
+    console.log(userJSON);
     let dataObj = {
       "id": userJSON.uniqueId,
       "UserName": userJSON.displayName,
@@ -561,7 +577,7 @@ export default class GetUsername extends Component {
                   subtitle={`Platform: ${item.platform}, ${this.state.stat}: ${item[this.state.stat]}`}
                   avatar={{ uri: item.avatar }}
                   containerStyle={{ borderBottomWidth: 0 }}
-                  onPress={() => this.getUserFromID(item.id)}
+                  onPress={() => this.getUserFromID(item.id, item.platform)}
                 />
               )}
               keyExtractor={item => item.id}
@@ -679,10 +695,8 @@ export default class GetUsername extends Component {
           />
 
 
-          <Text style={styles.h2}>User '{this.state.text}' not found. </Text>
-          <Text>Try entering your steam id instead:</Text>
-          <TextInput style={{ height: 40, width: 200 }} placeholder="Enter steam id" onChangeText={(text) => this.setState({ text })} />
-          <Button title="Search using Steam ID" color="#FF0000" onPress={() => this.getUserFromID(this.state.text)} />
+          <Text style={styles.h2}>User '{this.state.text}' not found. Please try another user.</Text>
+
           <Modal style={styles.modal}
             animationType="slide"
             transparent={false}
@@ -725,7 +739,7 @@ export default class GetUsername extends Component {
                 subtitle={`Platform: ${item.platform}, Goals: ${item.goals}`}
                 avatar={{ uri: item.avatar }}
                 containerStyle={{ borderBottomWidth: 0 }}
-                onPress={() => this.getUserFromID(item.id)}
+                onPress={() => this.getUserFromID(item.id, item.platform)}
               />
             )}
             keyExtractor={item => item.id}
