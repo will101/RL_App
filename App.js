@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { AppRegistry, Text, TextInput, View, Alert, Button, Image, ReactDOM, SectionList, FlatList, StyleSheet, ScrollView } from 'react-native';
 import { List, ListItem, Avatar, Header, ButtonGroup, CheckBox } from "react-native-elements";
 import { VictoryBar, VictoryChart, VictoryTheme, VictoryPie } from "victory-native";
-import { Table, TableWrapper, Row, Rows, Col, Cols, Cell } from 'react-native-table-component';
+
 
 class userObj {
   username;
@@ -112,7 +112,15 @@ export default class GetUsername extends Component {
           //do this in a for , for each season!
           for (let i = 6; i < 9; i++) {
             //get the keys for this season
-            let seasonKeys = Object.keys(resJSON.data[0].rankedSeasons[i]);
+            let seasonKeys;
+            try {
+              seasonKeys = Object.keys(resJSON.data[0].rankedSeasons[i]);
+            }
+            catch (e) {
+              console.log("caught!");
+              continue; //skip to the next iteration
+            }
+
             //check what exists in the array
             let singlesPos = seasonKeys.indexOf("11");
             let doublePos = seasonKeys.indexOf("12");
@@ -170,11 +178,22 @@ export default class GetUsername extends Component {
                 "tier": ""
               }
             }
-            //push an object, format of season:{playlist data, playlist data, playlist data}
+            //if everything is an empty string, dont bother setting the state as there's no point rendering it.
+            if (singlesData.matchesPlayed == "" && doublesData.matchesPlayed == "" && triplesData.matchesPlayed === "") {
+              continue;
+            }
+
+            //FIX NEEDED HERE!
+            //we dont want to display data with nothing in it!
+            //create a different object, so we only add data to it if their are matches played
+            //what would be ideal is new userRankedData(data), and on render, we just have something that renders all keys
+            //dont spend too long on this, if > 3 hours, just put 0 in instead of "" and concentrate on styling.
+
             rankedData.push(new seasonData(i, singlesData, doublesData, triplesData));
           }
           this.setState({ display: true, length: length++, username: userName, singlePlayerData: dataObj, rankedData: rankedData });
         }
+
         else if (length > 1) {
           //loop through the data and put it into an array, then put it in a list view where the user selects which one is them... then we will display their data
           let allUsers = [];
@@ -578,8 +597,6 @@ export default class GetUsername extends Component {
         let mvpWins = parseInt(this.state.singlePlayerData.Mvps) / parseInt(this.state.singlePlayerData.Wins);
         let totalMvpWins = Math.round(mvpWins * 100);
 
-        //to display the ranked data try and use this: https://www.npmjs.com/package/react-native-table-component 
-        //looks simple enough to use!
 
         return (
           <View>
@@ -611,28 +628,29 @@ export default class GetUsername extends Component {
               <Text>Goal/Shot % -  {totalPercentage}%</Text>
               <Text>MVP/Wins % -  {totalMvpWins}%</Text>
 
-              <Text>Ranked data: </Text>
+              <Text>{"\n"}Ranked data:{"\n"} </Text>
 
               <FlatList
                 data={this.state.rankedData}
-                renderItem={({ item }) => <Text>Season: {item.season} &nbsp;
-                  <Text> 1 V 1: </Text>
-                  <Text>Division: {item.singles.division}</Text>
-                  <Text>Matches played: {item.singles.matchesPlayed}</Text>
-                  <Text>Rank points: {item.singles.rankPoints} </Text>
-                  <Text>Tier: {item.singles.tier}</Text>
+                renderItem={({ item }) => <Text>Season: {item.season} {"\n"}
 
-                  <Text> 2 V 2: </Text>
-                  <Text>Division: {item.doubles.division}</Text>
-                  <Text>Matches played: {item.doubles.matchesPlayed}</Text>
-                  <Text>Rank points: {item.doubles.rankPoints} </Text>
-                  <Text>Tier: {item.doubles.tier}</Text>
+                  <Text> 1 V 1: {"\n"}</Text>
+                  <Text> Division: {item.singles.division}{"\n"}</Text>
+                  <Text>Matches played: {item.singles.matchesPlayed}{"\n"}</Text>
+                  <Text>Rank points: {item.singles.rankPoints}{"\n"} </Text>
+                  <Text>Tier: {item.singles.tier}{"\n"}{"\n"}</Text>
 
-                  <Text> 3 V 3: </Text>
-                  <Text>Division: {item.triples.division}</Text>
-                  <Text>Matches played: {item.triples.matchesPlayed}</Text>
-                  <Text>Rank points: {item.triples.rankPoints} </Text>
-                  <Text>Tier: {item.triples.tier}</Text>
+                  <Text> 2 V 2:{"\n"} </Text>
+                  <Text>Division: {item.doubles.division}{"\n"}</Text>
+                  <Text>Matches played: {item.doubles.matchesPlayed}{"\n"}</Text>
+                  <Text>Rank points: {item.doubles.rankPoints}{"\n"} </Text>
+                  <Text>Tier: {item.doubles.tier}{"\n"}{"\n"}</Text>
+
+                  <Text> 3 V 3: {"\n"}</Text>
+                  <Text>Division: {item.triples.division}{"\n"}</Text>
+                  <Text>Matches played: {item.triples.matchesPlayed}{"\n"}</Text>
+                  <Text>Rank points: {item.triples.rankPoints}{"\n"} </Text>
+                  <Text>Tier: {item.triples.tier}{"\n"}</Text>
                 </Text>
                 }
               />

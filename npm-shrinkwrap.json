@@ -9205,6 +9205,11 @@
         "xdl": "48.1.4"
       }
     },
+    "react-native-simple-table": {
+      "version": "0.0.3",
+      "resolved": "https://registry.npmjs.org/react-native-simple-table/-/react-native-simple-table-0.0.3.tgz",
+      "integrity": "sha512-U5b6KXqsCxOgwqm26Ej4G3T3gCch4BV3micK/WYFjMENW33fh/DmoTfr11Gwb92/FDToH8dzuNY/peA0oEbkjQ=="
+    },
     "react-native-svg": {
       "version": "6.3.1",
       "resolved": "https://registry.npmjs.org/react-native-svg/-/react-native-svg-6.3.1.tgz",
