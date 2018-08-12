@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { AppRegistry, Text, TextInput, View, Alert, Button, Image, ReactDOM, SectionList, FlatList, StyleSheet, ScrollView, Modal, TouchableHighlight } from 'react-native';
+import { AppRegistry, Text, TextInput, View, Alert, Button, Image, ReactDOM, SectionList, FlatList, StyleSheet, ScrollView, Modal, TouchableHighlight, Linking } from 'react-native';
 import { List, ListItem, Avatar, Header, ButtonGroup, CheckBox } from "react-native-elements";
 import { VictoryBar, VictoryChart, VictoryTheme, VictoryPie } from "victory-native";
 
@@ -35,39 +35,6 @@ class seasonData {
   }
 }
 
-class MenuComponent extends Component {
-  constructor(props) {
-    super(props);
-    this.state = { open: false };
-
-  }
-  //setState isnt working!
-  render() {
-
-    if (this.state.open === false) {
-      return (
-        <View style={{}}>
-          <Button title="Open Menu" color="#ADD8E6" onPress={() => this.setState({ open: true })} />
-        </View>
-      );
-    }
-
-    //style this properly!
-    //or try this? might ake everything cleaner: https://reactnavigation.org/docs/en/getting-started.html 
-    if (this.state.open === true) {
-      return (
-        <View style={{}}>
-          <Text>Menu!</Text>
-          <Button title="Search" color="#ADD8E6" />
-          <Button title="Search by Steam ID" color="#ADD8E6" />
-          <Button title="Rocket League Stat Leaderboard" color="#ADD8E6" />
-          <Button title="Rocket League Tips" color="#ADD8E6" />
-        </View>
-      );
-    }
-
-  }
-}
 
 export default class GetUsername extends Component {
   constructor(props) {
@@ -392,6 +359,9 @@ export default class GetUsername extends Component {
 
 
   render() {
+    //disable warning as they are from external libraries we are using (react native elements);
+    console.disableYellowBox = true;
+
     const buttons = ["Mvps", "Goals", "Wins", "Shots", "Saves", "Assists"];
     const styles = StyleSheet.create({
       container: {
@@ -432,7 +402,12 @@ export default class GetUsername extends Component {
       modal: {
         justifyContent: 'center',
         alignItems: 'center',
+      },
+      link: {
+        color: '#191970',
+        textDecorationLine: 'underline'
       }
+
 
 
     });
@@ -442,9 +417,8 @@ export default class GetUsername extends Component {
         <View style={{}}>
           <Header
             placement="left"
-            leftComponent={<MenuComponent />}
+            leftComponent={{ icon: 'home', onPress: () => this.setState({ display: false }), color: '#fff' }}
             centerComponent={{ text: 'Rocket League Stats App!', style: { color: '#fff' } }}
-            rightComponent={{ icon: 'home', onPress: () => this.setState({ display: false }), color: '#fff' }}
             style={{ alignSelf: 'stretch' }}
           />
 
@@ -472,7 +446,9 @@ export default class GetUsername extends Component {
               </View>
             </View>
           </Modal>
-
+          <TouchableHighlight onPress={() => Linking.openURL('http://documentation.rocketleaguestats.com/')}>
+            <Text style={styles.link}>Rocket League API provided by Rocket League Stats</Text>
+          </TouchableHighlight>
         </View>
 
       );
@@ -544,7 +520,9 @@ export default class GetUsername extends Component {
               </View>
             </View>
           </Modal>
-
+          <TouchableHighlight onPress={() => Linking.openURL('http://documentation.rocketleaguestats.com/')}>
+            <Text style={styles.link}>Rocket League API provided by Rocket League Stats</Text>
+          </TouchableHighlight>
         </View>
       );
     }
@@ -610,6 +588,9 @@ export default class GetUsername extends Component {
                 </View>
               </View>
             </Modal>
+            <TouchableHighlight onPress={() => Linking.openURL('http://documentation.rocketleaguestats.com/')}>
+              <Text style={styles.link}>Rocket League API provided by Rocket League Stats</Text>
+            </TouchableHighlight>
           </View >
 
         );
@@ -683,6 +664,9 @@ export default class GetUsername extends Component {
                 </View>
               </View>
             </Modal>
+            <TouchableHighlight onPress={() => Linking.openURL('http://documentation.rocketleaguestats.com/')}>
+              <Text style={styles.link}>Rocket League API provided by Rocket League Stats</Text>
+            </TouchableHighlight>
           </ScrollView>
         );
       }
@@ -718,6 +702,9 @@ export default class GetUsername extends Component {
               </View>
             </View>
           </Modal>
+          <TouchableHighlight onPress={() => Linking.openURL('http://documentation.rocketleaguestats.com/')}>
+            <Text style={styles.link}>Rocket League API provided by Rocket League Stats</Text>
+          </TouchableHighlight>
         </View >
       );
     }
@@ -763,6 +750,9 @@ export default class GetUsername extends Component {
               </View>
             </View>
           </Modal>
+          <TouchableHighlight onPress={() => Linking.openURL('http://documentation.rocketleaguestats.com/')}>
+            <Text style={styles.link}>Rocket League API provided by Rocket League Stats</Text>
+          </TouchableHighlight>
         </ List>
       )
     }
