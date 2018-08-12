@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
-import { AppRegistry, Text, TextInput, View, Alert, Button, Image, ReactDOM, SectionList, FlatList, StyleSheet, ScrollView } from 'react-native';
+import { AppRegistry, Text, TextInput, View, Alert, Button, Image, ReactDOM, SectionList, FlatList, StyleSheet, ScrollView, Modal, TouchableHighlight } from 'react-native';
 import { List, ListItem, Avatar, Header, ButtonGroup, CheckBox } from "react-native-elements";
 import { VictoryBar, VictoryChart, VictoryTheme, VictoryPie } from "victory-native";
+
 
 
 class userObj {
@@ -71,14 +72,29 @@ class MenuComponent extends Component {
 export default class GetUsername extends Component {
   constructor(props) {
     super(props);
-    this.state = { text: '', display: false, length: '', username: '', singlePlayerData: {}, multipleData: [], menu: '', selectedIndex: 0, stat: '', rankedData: [], showStats: false, haveRanked: false };
+    this.state = {
+      text: '', display: false,
+      length: '',
+      username: '',
+      singlePlayerData: {},
+      multipleData: [],
+      menu: '',
+      selectedIndex: 0,
+      stat: '',
+      rankedData: [],
+      showStats: false,
+      haveRanked: false,
+
+      //modal box
+      modalVisible: false,
+
+    };
     this.SearchForUser = this.SearchForUser.bind(this);
     this.getUserFromID = this.getUserFromID.bind(this);
     this.updateIndex = this.updateIndex.bind(this);
   }
 
   async SearchForUser(userName) {
-
     if (userName != null || userName != undefined || userName != "") {
       let obj = {
         method: "GET",
@@ -146,7 +162,6 @@ export default class GetUsername extends Component {
             }
 
           }
-
           this.setState({ display: true, length: length++, username: userName, singlePlayerData: dataObj, rankedData: rankedData });
         }
 
@@ -206,9 +221,6 @@ export default class GetUsername extends Component {
             userId = undefined;
           }
 
-          console.log("user id!");
-          console.log(userId);
-
           if (userId === undefined) {
             this.setState({ display: "Not found", userName: "User: " + userName + " not found." });
           }
@@ -227,6 +239,9 @@ export default class GetUsername extends Component {
 
 
   async getUserFromID(userId) {
+    this.setState({ modalVisible: true });
+
+    console.log("getting user:" + userId);
     let obj = {
       method: "GET",
       headers: {
@@ -237,31 +252,11 @@ export default class GetUsername extends Component {
 
     let userData = await fetch("https://api.rocketleaguestats.com/v1/player?unique_id=" + userId + "&platform_id=1", obj);
     let userJSON = await userData.json();
-    let displayName;
-    let avatar;
-    let platform;
-    let profile;
-    let signatureUrl;
-
-    displayName = userJSON.displayName;
-
-    try {
-      avatar = userJSON.avatar
-
-    }
-    catch (e) {
-      avatar = "";
-    }
-    try {
-      profile = userJSON.profileUrl;
-
-    }
-    catch (e) { }
-
 
     let dataObj = {
+      "id": userJSON.uniqueId,
       "UserName": userJSON.displayName,
-      "Avatar": avatar,
+      "Avatar": userJSON.avatar,
       "Platform": userJSON.platform.name,
       "Wins": userJSON.stats.wins,
       "Goals": userJSON.stats.goals,
@@ -269,18 +264,50 @@ export default class GetUsername extends Component {
       "Saves": userJSON.stats.saves,
       "Shots": userJSON.stats.shots,
       "Assists": userJSON.stats.assists,
-      "ProfileUrl": profile,
+      "ProfileUrl": userJSON.profileUrl,
       "SignatureUrl": userJSON.signatureUrl
     }
+    let userName = userJSON.displayName;
+    let rankedData = [];
+    //do this in a for , for each season!
+    for (let i = 6; i < 9; i++) {
+      //get the keys for this season
+      let seasonKeys;
+      try {
+        seasonKeys = Object.keys(userJSON.rankedSeasons[i]);
+      }
+      catch (e) {
+        console.log("caught!");
+        continue; //skip to the next iteration
+      }
+      // console.log("Season keys");
+      //console.log(seasonKeys);
+      //check what exists in the array
+      let singlesPos = seasonKeys.indexOf("11");
+      let doublePos = seasonKeys.indexOf("12");
+      let triplePos = seasonKeys.indexOf("13");
+      //console.log("keys: " + singlesPos + "  , " + doublePos + " , " + triplePos);
 
-    //this re renders the component!
-    this.setState({ display: true, username: displayName, singlePlayerData: dataObj });
+      if (singlesPos != -1 && userJSON.rankedSeasons[i][11].matchesPlayed > 0) {
+        //console.log("In here");
+        rankedData.push(new seasonData(i, "Singles", userJSON.rankedSeasons[i][11].matchesPlayed, userJSON.rankedSeasons[i][11].tier, userJSON.rankedSeasons[i][11].rankPoints, userJSON.rankedSeasons[i][11].division));
+      }
 
+      if (doublePos != -1 && userJSON.rankedSeasons[i][12].matchesPlayed > 0) {
+        //console.log("In doubes here");
+        rankedData.push(new seasonData(i, "Doubles", userJSON.rankedSeasons[i][12].matchesPlayed, userJSON.rankedSeasons[i][12].tier, userJSON.rankedSeasons[i][12].rankPoints, userJSON.rankedSeasons[i][12].division));
+      }
+
+      if (triplePos != -1 && userJSON.rankedSeasons[i][13].matchesPlayed > 0) {
+        // console.log("in tripeles");
+        rankedData.push(new seasonData(i, "Triples", userJSON.rankedSeasons[i][13].matchesPlayed, userJSON.rankedSeasons[i][13].tier, userJSON.rankedSeasons[i][13].rankPoints, userJSON.rankedSeasons[i][13].division));
+      }
+    }
+    this.setState({ display: true, username: userName, singlePlayerData: dataObj, rankedData: rankedData, modalVisible: false });
   }
 
   async getTopStats(index) {
     let statToFind;
-    const buttons = ["Mvps", "Goals", "Wins", "Shots", "Saves", "Assists"];
     switch (index) {
       case 0:
         statToFind = "mvps"
@@ -302,9 +329,6 @@ export default class GetUsername extends Component {
         break;
     }
     this.setState({ stat: statToFind });
-
-    //console.log("selected index: " + index);
-    //console.log(statToFind);
 
     let obj = {
       method: "GET",
@@ -359,8 +383,6 @@ export default class GetUsername extends Component {
 
 
   updateIndex(selectedIndex) {
-    console.log("updated: ")
-    console.log(selectedIndex);
     this.setState({ multipleData: [] });
     this.setState({ selectedIndex });
     this.setState({ showStats: true });
@@ -387,9 +409,6 @@ export default class GetUsername extends Component {
 
       },
       playerContainer: {
-        alignItems: 'center',
-        paddingVertical: 20,
-
       },
       label: {
         fontWeight: 'bold'
@@ -398,15 +417,23 @@ export default class GetUsername extends Component {
 
       },
       head: { height: 40, backgroundColor: '#f1f8ff' },
-      tableContainer: { flex: 1, padding: 16, paddingTop: 30, backgroundColor: '#fff' },
-      head: { height: 40, backgroundColor: '#f1f8ff' },
       text: { margin: 6 },
+      h1: {
+        fontSize: 30,
+        fontWeight: 'bold',
+        fontFamily: 'sans-serif-thin',
+      },
       Image: {
         flex: 1,
         width: 400,
         height: 150,
         resizeMode: 'contain'
+      },
+      modal: {
+        justifyContent: 'center',
+        alignItems: 'center',
       }
+
 
     });
 
@@ -430,15 +457,32 @@ export default class GetUsername extends Component {
             onPress={() => this.updateIndex(this.state.selectedIndex)}
             title="Show stat leaderboard!"
           />
+
+          <Modal
+            animationType="slide"
+            transparent={false}
+            visible={this.state.modalVisible}
+            onRequestClose={() => {
+              alert('Modal has been closed.');
+            }}>
+            <View style={{ marginTop: 22 }}>
+              <View>
+                <Image source={require('./loader.gif')} />
+                <Text>Fetching Data...</Text>
+              </View>
+            </View>
+          </Modal>
+
         </View>
+
       );
     }
-
 
     if (this.state.display === false && this.state.showStats === true) {
       return (
 
         <View style={{}}>
+
           <Header
             placement="left"
             leftComponent={{ icon: 'menu', onPress: () => this.setState({ menu: open }), color: '#fff' }}
@@ -446,6 +490,8 @@ export default class GetUsername extends Component {
             rightComponent={{ icon: 'home', onPress: () => this.setState({ display: false }), color: '#fff' }}
             style={{ alignSelf: 'stretch' }}
           />
+
+
           <Text style={styles.title}>Enter username or steam id:</Text>
           <TextInput style={{ height: 40, width: 200 }} placeholder="Enter username or id here!" onChangeText={(text) => this.setState({ text })} />
           <Button title="Get Stats" color="#ADD8E6" onPress={() => this.SearchForUser(this.state.text)} />
@@ -465,6 +511,7 @@ export default class GetUsername extends Component {
           />
 
 
+
           <List containerStyle={{ borderTopWidth: 0, borderBottomWidth: 0, }}>
             <Text>Stat leaderboard for {this.state.stat}:</Text>
             <FlatList
@@ -476,27 +523,28 @@ export default class GetUsername extends Component {
                   subtitle={`Platform: ${item.platform}, ${this.state.stat}: ${item[this.state.stat]}`}
                   avatar={{ uri: item.avatar }}
                   containerStyle={{ borderBottomWidth: 0 }}
-                  onPress={() => this.setState({
-                    display: true, singlePlayerData:
-                    {
-                      "UserName": item.username,
-                      "Avatar": item.avatar,
-                      "Platform": item.platform,
-                      "Wins": item.wins,
-                      "Goals": item.goals,
-                      "Mvps": item.mvps,
-                      "Saves": item.saves,
-                      "Shots": item.shots,
-                      "Assists": item.assists,
-                      "ProfileUrl": item.profileUrl,
-                      "SignatureUrl": item.signatureUrl
-                    }
-                  })}
+                  onPress={() => this.getUserFromID(item.id)}
                 />
               )}
               keyExtractor={item => item.id}
             />
           </ List>
+
+          <Modal
+            animationType="slide"
+            transparent={false}
+            visible={this.state.modalVisible}
+            onRequestClose={() => {
+              alert('Modal has been closed.');
+            }}>
+            <View style={{ marginTop: 22 }}>
+              <View>
+                <Image source={require('./loader.gif')} />
+                <Text>Fetching Data...</Text>
+              </View>
+            </View>
+          </Modal>
+
         </View>
       );
     }
@@ -513,6 +561,7 @@ export default class GetUsername extends Component {
         console.log(initials);
         return (
           <View>
+
             <Header
               placement="left"
               leftComponent={{ icon: 'menu', onPress: () => this.setState({ menu: open }), color: '#fff' }}
@@ -520,6 +569,7 @@ export default class GetUsername extends Component {
               rightComponent={{ icon: 'home', onPress: () => this.setState({ display: false }), color: '#fff' }}
               style={{ alignSelf: 'stretch' }}
             />
+
             <ScrollView contentContainerStyle={styles.playerContainer}>
               <Text style={styles.userTitle}>Stats for: {this.state.singlePlayerData.UserName} </Text>
 
@@ -546,6 +596,20 @@ export default class GetUsername extends Component {
 
               <Button title="Search Again" color="#00B200" onPress={() => this.setState({ display: false })} />
             </ScrollView >
+            <Modal
+              animationType="slide"
+              transparent={false}
+              visible={this.state.modalVisible}
+              onRequestClose={() => {
+                alert('Modal has been closed.');
+              }}>
+              <View style={{ marginTop: 22 }}>
+                <View>
+                  <Image source={require('./loader.gif')} />
+                  <Text>Fetching Data...</Text>
+                </View>
+              </View>
+            </Modal>
           </View >
 
         );
@@ -558,7 +622,7 @@ export default class GetUsername extends Component {
         console.log(this.state.singlePlayerData);
 
         return (
-          <View>
+          <ScrollView contentContainerStyle={styles.playerContainer}>
             <Header
               placement="left"
               leftComponent={{ icon: 'menu', onPress: () => this.setState({ menu: open }), color: '#fff' }}
@@ -566,47 +630,60 @@ export default class GetUsername extends Component {
               rightComponent={{ icon: 'home', onPress: () => this.setState({ display: false }), color: '#fff' }}
               style={{ alignSelf: 'stretch' }}
             />
-            <ScrollView contentContainerStyle={styles.playerContainer}>
-              <Text style={styles.userTitle}>Stats for: {this.state.singlePlayerData.UserName} </Text>
 
-              <Text style={styles.title}>Play style: {"\n"}</Text>
-              <VictoryPie
-                height={300}
-                width={450}
-                theme={VictoryTheme.material}
-                data={[
-                  { x: "1", y: parseInt(this.state.singlePlayerData.Wins), label: "Wins: " + this.state.singlePlayerData.Wins.toString() },
-                  { x: "2", y: parseInt(this.state.singlePlayerData.Goals), label: "Goals: " + this.state.singlePlayerData.Goals.toString() },
-                  { x: "3", y: parseInt(this.state.singlePlayerData.Mvps), label: "Mvp's: " + this.state.singlePlayerData.Mvps.toString() },
-                  { x: "4", y: parseInt(this.state.singlePlayerData.Shots), label: "Shots: " + this.state.singlePlayerData.Shots.toString() },
-                  { x: "5", y: parseInt(this.state.singlePlayerData.Saves), label: "Saves: " + this.state.singlePlayerData.Saves.toString() },
-                  { x: "6", y: parseInt(this.state.singlePlayerData.Assists), label: "Assists: " + this.state.singlePlayerData.Assists.toString() }
-                ]}
-              />
+            <Text style={styles.h1}>Stats for: {this.state.singlePlayerData.UserName} </Text>
 
-              <Text>Goal/Shot % -  {totalPercentage}%</Text>
-              <Text>MVP/Wins % -  {totalMvpWins}%</Text>
-              <Text>{"\n"}Ranked data:{"\n"} </Text>
+            <Text style={styles.title}>Play style: {"\n"}</Text>
+            <VictoryPie
+              height={300}
+              width={450}
+              theme={VictoryTheme.material}
+              data={[
+                { x: "1", y: parseInt(this.state.singlePlayerData.Wins), label: "Wins: " + this.state.singlePlayerData.Wins.toString() },
+                { x: "2", y: parseInt(this.state.singlePlayerData.Goals), label: "Goals: " + this.state.singlePlayerData.Goals.toString() },
+                { x: "3", y: parseInt(this.state.singlePlayerData.Mvps), label: "Mvp's: " + this.state.singlePlayerData.Mvps.toString() },
+                { x: "4", y: parseInt(this.state.singlePlayerData.Shots), label: "Shots: " + this.state.singlePlayerData.Shots.toString() },
+                { x: "5", y: parseInt(this.state.singlePlayerData.Saves), label: "Saves: " + this.state.singlePlayerData.Saves.toString() },
+                { x: "6", y: parseInt(this.state.singlePlayerData.Assists), label: "Assists: " + this.state.singlePlayerData.Assists.toString() }
+              ]}
+            />
 
-              <FlatList
-                data={this.state.rankedData}
-                renderItem={({ item }) =>
+            <Text>Goal/Shot % -  {totalPercentage}%</Text>
+            <Text>MVP/Wins % -  {totalMvpWins}%</Text>
+            <Text>{"\n"}Ranked data:{"\n"} </Text>
 
-                  <Text>Season: {item.season}{"\n"}
-                    Matches played: {item.matchesPlayed}{"\n"}
-                    Playlist: {item.playlist}{"\n"}
-                    Rank Points: {item.ranked}{"\n"}
-                    Tier: {item.tier} {"\n"}
-                    Division: {item.division} {"\n"}
-                  </Text>
-                }
-              />
-              <Image
-                style={styles.Image}
-                source={{ uri: this.state.singlePlayerData.SignatureUrl }}
-              />
-            </ScrollView>
-          </View>
+            <FlatList
+              data={this.state.rankedData}
+              renderItem={({ item }) =>
+
+                <Text>Season: {item.season}{"\n"}
+                  Matches played: {item.matchesPlayed}{"\n"}
+                  Playlist: {item.playlist}{"\n"}
+                  Rank Points: {item.ranked}{"\n"}
+                  Tier: {item.tier} {"\n"}
+                  Division: {item.division} {"\n"}
+                </Text>
+              }
+            />
+            <Image
+              style={styles.Image}
+              source={{ uri: this.state.singlePlayerData.SignatureUrl }}
+            />
+            <Modal
+              animationType="slide"
+              transparent={false}
+              visible={this.state.modalVisible}
+              onRequestClose={() => {
+                alert('Modal has been closed.');
+              }}>
+              <View style={{ marginTop: 22 }}>
+                <View>
+                  <Image source={require('./loader.gif')} />
+                  <Text>Fetching Data...</Text>
+                </View>
+              </View>
+            </Modal>
+          </ScrollView>
         );
       }
     }
@@ -622,19 +699,34 @@ export default class GetUsername extends Component {
             rightComponent={{ icon: 'home', onPress: () => this.setState({ display: false }), color: '#fff' }}
             style={{ alignSelf: 'stretch' }}
           />
+
           <Text>User '{this.state.text}' not found. </Text>
           <Text>Try entering your steam id instead:</Text>
           <TextInput style={{ height: 40, width: 200 }} placeholder="Enter steam id" onChangeText={(text) => this.setState({ text })} />
           <Button title="Search using Steam ID" color="#FF0000" onPress={() => this.getUserFromID(this.state.text)} />
+          <Modal
+            animationType="slide"
+            transparent={false}
+            visible={this.state.modalVisible}
+            onRequestClose={() => {
+              alert('Modal has been closed.');
+            }}>
+            <View style={{ marginTop: 22 }}>
+              <View>
+                <Image source={require('./loader.gif')} />
+                <Text>Fetching Data...</Text>
+              </View>
+            </View>
+          </Modal>
         </View >
       );
     }
-
     if (this.state.display === "Multiple") {
       //display all in view with a button
       return (
 
         <List containerStyle={{ borderTopWidth: 0, borderBottomWidth: 0 }}>
+
           <Header
             placement="left"
             leftComponent={{ icon: 'menu', onPress: () => this.setState({ menu: open }), color: '#fff' }}
@@ -642,6 +734,7 @@ export default class GetUsername extends Component {
             rightComponent={{ icon: 'home', onPress: () => this.setState({ display: false }), color: '#fff' }}
             style={{ alignSelf: 'stretch' }}
           />
+
           <FlatList
             data={this.state.multipleData}
             renderItem={({ item }) => (
@@ -651,26 +744,25 @@ export default class GetUsername extends Component {
                 subtitle={`Platform: ${item.platform}, Goals: ${item.goals}`}
                 avatar={{ uri: item.avatar }}
                 containerStyle={{ borderBottomWidth: 0 }}
-                onPress={() => this.setState({
-                  display: true, singlePlayerData:
-                  {
-                    "UserName": item.username,
-                    "Avatar": item.avatar,
-                    "Platform": item.platform,
-                    "Wins": item.wins,
-                    "Goals": item.goals,
-                    "Mvps": item.mvps,
-                    "Saves": item.saves,
-                    "Shots": item.shots,
-                    "Assists": item.assists,
-                    "ProfileUrl": item.profileUrl,
-                    "SignatureUrl": item.signatureUrl
-                  }
-                })}
+                onPress={() => this.getUserFromID(item.id)}
               />
             )}
             keyExtractor={item => item.id}
           />
+          <Modal
+            animationType="slide"
+            transparent={false}
+            visible={this.state.modalVisible}
+            onRequestClose={() => {
+              alert('Modal has been closed.');
+            }}>
+            <View style={{ marginTop: 22 }}>
+              <View>
+                <Image source={require('./loader.gif')} />
+                <Text>Fetching Data...</Text>
+              </View>
+            </View>
+          </Modal>
         </ List>
       )
     }
