@@ -66,6 +66,7 @@ export default class GetUsername extends Component {
   }
 
   async SearchForUser(userName) {
+
     if (userName != null || userName != undefined || userName != "") {
 
       //set the parameters for the fetch
@@ -521,8 +522,8 @@ export default class GetUsername extends Component {
             style={{ alignSelf: 'stretch' }}
           />
 
-          <Text style={styles.h2}>Enter username or steam id:</Text>
-          <TextInput style={{ height: 60, width: 350 }} placeholder="Enter username or id here." onChangeText={(text) => this.setState({ text })} />
+          <Text style={styles.h2}>Enter username:</Text>
+          <TextInput style={{ height: 60, width: 350 }} placeholder="Enter username here." onChangeText={(text) => this.setState({ text })} />
           <Button title="Get Stats" color="#ADD8E6" onPress={() => this.SearchForUser(this.state.text)} />
 
           <Text>{"\n"}</Text>
@@ -563,8 +564,8 @@ export default class GetUsername extends Component {
             style={{ alignSelf: 'stretch' }}
           />
 
-          <Text style={styles.h2}>Enter username or steam id:</Text>
-          <TextInput style={{ height: 40, width: 350 }} placeholder="Enter username or id here!" onChangeText={(text) => this.setState({ text })} />
+          <Text style={styles.h2}>Enter username:</Text>
+          <TextInput style={{ height: 40, width: 350 }} placeholder="Enter username here!" onChangeText={(text) => this.setState({ text })} />
           <Button title="Get Stats" color="#ADD8E6" onPress={() => this.SearchForUser(this.state.text)} />
           <Button title="Hide Leaderboard" onPress={() => this.setState({ display: false, showStats: false })} />
           <ButtonGroup
